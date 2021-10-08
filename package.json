@@ -2,10 +2,16 @@
 	"name": "starlight-generator",
 	"displayName": "StarLight-Generator",
 	"description": "An auto generator for https://starlight.yyyyy.tech",
-	"version": "0.0.1",
+	"version": "0.0.2",
+	"icon": "images/logo.png",
 	"publisher": "wysaid",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/wysaid/vscode-starlight-generator"
+	},
+	"homepage": "https://github.com/wysaid/vscode-starlight-generator",
 	"engines": {
-		"vscode": "^1.61.0"
+		"vscode": "^1.8.0"
 	},
 	"categories": [
 		"Other"
@@ -25,12 +31,12 @@
 			"type": "object",
 			"title": "StarLight-Generator Configuration",
 			"properties": {
-				"starlight-generator.terminal.path": {
+				"starlight-generator.binary_path": {
 					"type": "string",
-					"description": "A path to Starlight Binrary. (Maybe faster than online service)",
+					"description": "A path to starlight binrary. (Optional, maybe faster than online service)",
 					"scope": "resource"
 				},
-				"starlight-generator.terminal.api_url": {
+				"starlight-generator.api_url": {
 					"type": "string",
 					"description": "A url to starlight service (default: https://starlight.yyyyy.tech)",
 					"scope": "resource"
