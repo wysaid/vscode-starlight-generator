@@ -5,7 +5,8 @@
 const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
+// const childProcess = require('child_process');
+// const os = require('os');
 
 
 // this method is called when your extension is activated
@@ -26,11 +27,30 @@ function activate(context) {
 	let disposable = vscode.commands.registerCommand('starlight-generator.run', function () {
 		// The code you place here will be executed every time your command is executed
 
+		// run starlight command
+
+		if (!arguments || arguments.length == 0) {
+			vscode.window.showErrorMessage("StarLight-Generator: No param specified!");
+		}
+
 		// Display a message box to the user
 		let tipsMsg = 'StarLight-Generator is running! ';
 		if (arguments && arguments.length > 0) {
 			for (let i = 0; i < arguments.length; i++)
 				tipsMsg += ' ' + arguments[i];
+		}
+
+		vscode.window.showInformationMessage(tipsMsg);
+
+		const chosenFile = arguments[0];
+		let inputFileDir;
+		if (fs.statSync(chosenFile).isDirectory()) {
+			inputFileDir = chosenFile;
+		} else if (fs.statSync(chosenFile).isFile()) {
+			inputFileDir = path.dirname(chosenFile);
+		} else {
+			vscode.window.showErrorMessage("Invalid file/directory: " + chosenFile);
+			return;
 		}
 
 		vscode.window.withProgress({
@@ -54,7 +74,7 @@ function activate(context) {
 
 			setTimeout(function () {
 				progress.report({ increment: 100, message: "done ..." });
-				vscode.window.showInformationMessage(tipsMsg);
+
 			}, 3000);
 
 			const p = new Promise((resolve, reject) => {
@@ -64,6 +84,23 @@ function activate(context) {
 			});
 			return p;
 		});
+
+		let onProgress = (progressPercent) => {
+			if (progressPercent) {
+				console.log(progressPercent);
+			}
+		}
+
+		let onError = (error) => {
+			if (error) {
+				console.log(error);
+			}
+		}
+
+		const StarLight = require('./StarLight');
+		const slInstance = new StarLight("lua", inputFileDir, onProgress, onError);
+
+		slInstance.startRequest();
 	});
 
 	context.subscriptions.push(disposable);
