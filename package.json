@@ -1,0 +1,95 @@
+{
+	"name": "starlight-generator",
+	"displayName": "StarLight-Generator",
+	"description": "An auto generator for https://starlight.yyyyy.tech",
+	"version": "0.0.1",
+	"publisher": "wysaid",
+	"engines": {
+		"vscode": "^1.61.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:starlight-generator.run"
+	],
+	"main": "./src/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "starlight-generator.run",
+				"title": "Run StarLight-Generator with current file/directory"
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "StarLight-Generator Configuration",
+			"properties": {
+				"starlight-generator.terminal.path": {
+					"type": "string",
+					"description": "A path to Starlight Binrary. (Maybe faster than online service)",
+					"scope": "resource"
+				},
+				"starlight-generator.terminal.api_url": {
+					"type": "string",
+					"description": "A url to starlight service (default: https://starlight.yyyyy.tech)",
+					"scope": "resource"
+				},
+				"starlight-generator.showEditorContextMenu": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show 'StarLight-Generator' in editor context menu",
+					"scope": "resource"
+				},
+				"starlight-generator.explorerContextMenu": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show 'StarLight-Generator' in explorer context menu",
+					"scope": "resource"
+				}
+			}
+		},
+		"keybindings": [
+			{
+				"command": "starlight-generator.run",
+				"key": "ctrl+cmd+alt+l",
+				"mac": "ctrl+cmd+alt+l"
+			}
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"command": "starlight-generator.run",
+					"args": [
+						"${file}"
+					],
+					"when": "!inOutput && config.starlight-generator.showEditorContextMenu",
+					"group": "1_modification"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "starlight-generator.run",
+					"when": "config.starlight-generator.explorerContextMenu",
+					"group": "1_modification"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"lint": "eslint .",
+		"pretest": "npm run lint",
+		"test": "node ./test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.61.0",
+		"@types/glob": "^7.1.4",
+		"@types/mocha": "^9.0.0",
+		"@types/node": "14.x",
+		"eslint": "^7.32.0",
+		"glob": "^7.1.7",
+		"mocha": "^9.1.1",
+		"typescript": "^4.4.3",
+		"@vscode/test-electron": "^1.6.2"
+	}
+}
