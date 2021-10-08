@@ -40,27 +40,34 @@ function activate(context) {
 				tipsMsg += ' ' + arguments[i];
 		}
 
+		console.log(arguments);
 		vscode.window.showInformationMessage(tipsMsg);
 
 		const chosenFile = arguments[0];
 		let inputFileDir;
-		if (fs.statSync(chosenFile).isDirectory()) {
-			inputFileDir = chosenFile;
-		} else if (fs.statSync(chosenFile).isFile()) {
-			inputFileDir = path.dirname(chosenFile);
+		if (fs.statSync(chosenFile.path).isDirectory()) {
+			inputFileDir = chosenFile.path;
+		} else if (fs.statSync(chosenFile.path).isFile()) {
+			inputFileDir = path.dirname(chosenFile.path);
 		} else {
-			vscode.window.showErrorMessage("Invalid file/directory: " + chosenFile);
+			vscode.window.showErrorMessage("Invalid file/directory: " + chosenFile.path);
 			return;
 		}
+
+		const StarLight = require('./StarLight');
+		const slInstance = new StarLight("lua", inputFileDir, onProgress, onError);
+		let progressInstance = null;
+		let onCancellationRequested = function () {
+			console.log("StarLight Progress Cancelled!");
+		};
 
 		vscode.window.withProgress({
 			location: vscode.ProgressLocation.Notification,
 			title: "StarLight-Generator is running!",
 			cancellable: true,
 		}, async function (progress, token) {
-			token.onCancellationRequested(function () {
-				console.log("StarLight Progress Cancelled!");
-			});
+			progressInstance = progress;
+			token.onCancellationRequested(onCancellationRequested);
 
 			progress.report({ increment: 0 });
 
@@ -97,8 +104,6 @@ function activate(context) {
 			}
 		}
 
-		const StarLight = require('./StarLight');
-		const slInstance = new StarLight("lua", inputFileDir, onProgress, onError);
 
 		slInstance.startRequest();
 	});
@@ -107,7 +112,8 @@ function activate(context) {
 }
 
 // this method is called when your extension is deactivated
-function deactivate() { }
+function deactivate() {
+}
 
 module.exports = {
 	activate,

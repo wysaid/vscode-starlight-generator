@@ -28,7 +28,6 @@ module.exports = class {
                 }
             }
         }
-
     }
 
     startRequest() {
@@ -64,13 +63,15 @@ module.exports = class {
 
         this.outputFilePath = tmpDir.toString() + "/slOutput.zip";
         const outputFile = fs.createWriteStream(this.outputFilePath);
-        const req = https.request({
+        let localThis = this;
+        this.req = https.request({
             hostname: 'starlight.yyyyy.tech',
             port: 443,
             path: '/',
             method: 'POST',
             headers: { 'Content-Type': 'Content-Type: multipart/form-data' },
         }, (resHttps) => {
+            localThis.resHttps = resHttps;
             console.log("status code: " + resHttps.statusCode);
             console.log("headers: " + resHttps.headers);
             resHttps.on('data', (data) => {
