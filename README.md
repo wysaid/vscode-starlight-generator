@@ -4,6 +4,13 @@ A vscode plugin for [starlight](https://starlight.yyyyy.tech) service. Enjoy it!
 
 ## Features
 
+- Generate `Starlight Shader Template` with single click
+
+## Install
+
+- Search `StarLight-Generator` in the Visual Studio Store.
+- Get it at <https://marketplace.visualstudio.com/items?itemName=wysaid.starlight-generator>
+
 ## Extension Settings
 
 You can define some options like below:
