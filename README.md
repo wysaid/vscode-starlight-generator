@@ -26,6 +26,8 @@ You can define some options like below:
 
 ## Key Bindings
 
+Only support `lua` and `cpp`.
+
 ```jsonc
 {
     "key" : "ctrl+cmd+alt+l",

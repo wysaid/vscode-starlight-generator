@@ -1,16 +1,162 @@
+// @ts-nocheck
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 'use strict';
 
 const vscode = require('vscode');
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
-// const childProcess = require('child_process');
-// const os = require('os');
 
+const StarLight = require('./StarLight');
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+class StarLightRunner {
+
+	type = null;
+	slInstance = null;
+
+	progressInstance = null;
+	progressToken = null;
+	progressIncrement = 0;
+
+	progressResolve = null;
+	progressReject = null;
+
+	timeoutHandle = null;
+
+	constructor() {
+
+	}
+
+	/// will simply write back to the input directory.
+	performStarLight(type, inputDir) {
+
+		const inputDirStat = fs.statSync(inputDir);
+		if (inputDirStat.isFile()) {
+			inputDir = path.dirname(inputDir);
+		} else if (!inputDirStat.isDirectory()) {
+			vscode.window.showErrorMessage("Invalid file/directory: " + inputDir.path);
+			return;
+		}
+
+		if (this.slInstance) {
+			vscode.window.showInformationMessage("The StarLight-Generator is already running, please wait...");
+			return;
+		}
+
+		this.slInstance = new StarLight();
+
+		const slInstance = this.slInstance;
+
+		slInstance.onProgressCallback = this.onProgress.bind(this);
+		slInstance.onFileDownloadedCallback = this.onFileDownload.bind(this)
+		slInstance.onFinishCallback = this.onFinish.bind(this);
+		slInstance.onErrorCallback = this.onError.bind(this);
+		slInstance.type = type;
+
+		/// input and output directories are the same directory.
+		slInstance.inputFolder = inputDir;
+		slInstance.outputDir = inputDir;
+		slInstance.cleanupOutputFolder = false;
+		slInstance.forceOverrideOutputFiles = true;
+		this.progressIncrement = 0;
+		const localThis = this;
+
+		vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			title: "StarLight-Generator is running!",
+			cancellable: true,
+		}, async function (progress, token) {
+			localThis.progressInstance = progress;
+			localThis.progressToken = token;
+			token.onCancellationRequested(localThis.onCancellationRequested);
+
+			progress.report({ increment: 0, message: "StarLight-Generator start running!" });
+			localThis.slInstance.startRequest();
+
+			const p = new Promise((resolve, reject) => {
+				progressResolve = resolve;
+				progressReject = reject;
+				/// End in ten minutes
+				localThis.timeoutHandle = setTimeout(() => {
+					localThis.timeoutHandle = null;
+					localThis.onError("request time out");
+				}, 10000);
+			});
+			return p;
+		});
+	}
+
+	onCancellationRequested() {
+		console.log("Killing StarLight-Generator process");
+		this.doReject();
+	}
+
+	onProgress(progressMessage) {
+		if (this.progressInstance) {
+
+			if (this.progressIncrement < 95) {
+				if (this.progressIncrement > 70) {
+					this.progressIncrement += 1;
+				} else {
+					this.progressIncrement += 10;
+				}
+			}
+
+			this.progressInstance.report({
+				increment: this.progressIncrement,
+				message: progressMessage
+			});
+		}
+
+		console.log(progressMessage);
+	}
+
+	endPerform() {
+		if (this.timeoutHandle) {
+			clearTimeout(this.timeoutHandle);
+			this.timeoutHandle = null;
+		}
+		this.slInstance = null;
+	}
+
+	doResolve() {
+		if (this.progressReject) {
+			this.progressReject();
+			this.progressReject = null;
+		}
+		this.endPerform();
+	}
+
+	doReject() {
+		if (this.progressResolve) {
+			this.progressResolve();
+			this.progressResolve = null;
+		}
+		this.endPerform();
+	}
+
+	onError(err) {
+		this.doReject();
+	}
+
+	onFileDownload(outputZipFile) {
+		console.log("outputZipFile: " + outputZipFile);
+	}
+
+	onFinish(slInstance) {
+		console.log("onFinish, files at " + slInstance.outputDir);
+
+		fs.readdirSync(slInstance.outputDir).forEach(file => {
+			console.log(file);
+		});
+
+		console.log("Task All Over.");
+
+		this.doResolve();
+	}
+}
+
+let slRunner = null;
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -31,81 +177,28 @@ function activate(context) {
 
 		if (!arguments || arguments.length == 0) {
 			vscode.window.showErrorMessage("StarLight-Generator: No param specified!");
-		}
-
-		// Display a message box to the user
-		let tipsMsg = 'StarLight-Generator is running! ';
-		if (arguments && arguments.length > 0) {
-			for (let i = 0; i < arguments.length; i++)
-				tipsMsg += ' ' + arguments[i];
-		}
-
-		console.log(arguments);
-		vscode.window.showInformationMessage(tipsMsg);
-
-		const chosenFile = arguments[0];
-		let inputFileDir;
-		if (fs.statSync(chosenFile.path).isDirectory()) {
-			inputFileDir = chosenFile.path;
-		} else if (fs.statSync(chosenFile.path).isFile()) {
-			inputFileDir = path.dirname(chosenFile.path);
-		} else {
-			vscode.window.showErrorMessage("Invalid file/directory: " + chosenFile.path);
 			return;
 		}
 
-		const StarLight = require('./StarLight');
-		const slInstance = new StarLight("lua", inputFileDir, onProgress, onError);
-		let progressInstance = null;
-		let onCancellationRequested = function () {
-			console.log("StarLight Progress Cancelled!");
-		};
-
-		vscode.window.withProgress({
-			location: vscode.ProgressLocation.Notification,
-			title: "StarLight-Generator is running!",
-			cancellable: true,
-		}, async function (progress, token) {
-			progressInstance = progress;
-			token.onCancellationRequested(onCancellationRequested);
-
-			progress.report({ increment: 0 });
-
-			setTimeout(function () {
-				progress.report({ increment: 20, message: "running 20% ..." });
-			}, 1000);
-
-			setTimeout(function () {
-				progress.report({ increment: 50, message: "running 50% ..." });
-			}, 2000);
-
-			setTimeout(function () {
-				progress.report({ increment: 100, message: "done ..." });
-
-			}, 3000);
-
-			const p = new Promise((resolve, reject) => {
-				setTimeout(() => {
-					reject();
-				}, 5000);
-			});
-			return p;
-		});
-
-		let onProgress = (progressPercent) => {
-			if (progressPercent) {
-				console.log(progressPercent);
-			}
+		if (slRunner == null) {
+			slRunner = new StarLightRunner();
 		}
 
-		let onError = (error) => {
-			if (error) {
-				console.log(error);
+		console.log("before performStarLight");
+		try {
+			const arg0 = arguments[0];
+			if (arg0.path) { /// maybe instance of file ?
+				slRunner.performStarLight("lua", arg0.path);
+			} else if (arg0 instanceof String) {
+				slRunner.performStarLight("lua", arguments[0]);
+			} else {
+				slRunner.performStarLight("lua", arguments[0].toString());
 			}
+
+		} catch (err) {
+			console.log(err);
 		}
-
-
-		slInstance.startRequest();
+		console.log("after performStarLight");
 	});
 
 	context.subscriptions.push(disposable);
