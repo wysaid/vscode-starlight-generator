@@ -17,14 +17,19 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:starlight-generator.run"
+		"onCommand:starlight-generator.lua",
+		"onCommand:starlight-generator.cpp"
 	],
 	"main": "./src/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "starlight-generator.run",
-				"title": "Run StarLight-Generator with current file/directory"
+				"command": "starlight-generator.lua",
+				"title": "1. Run StarLight-Generator lua with current file/directory"
+			},
+			{
+				"command": "starlight-generator.cpp",
+				"title": "2. Run StarLight-Generator cpp with current file/directory"
 			}
 		],
 		"configuration": {
@@ -57,28 +62,43 @@
 		},
 		"keybindings": [
 			{
-				"command": "starlight-generator.run",
+				"command": "starlight-generator.lua",
 				"key": "ctrl+cmd+alt+l",
 				"mac": "ctrl+cmd+alt+l",
 				"args": [
-					"${file}"
+					"fromKey"
+				]
+			},
+			{
+				"command": "starlight-generator.cpp",
+				"key": "ctrl+cmd+alt+c",
+				"mac": "ctrl+cmd+alt+c",
+				"args": [
+					"fromKey"
 				]
 			}
 		],
 		"menus": {
 			"editor/context": [
 				{
-					"command": "starlight-generator.run",
-					"args": [
-						"${file}"
-					],
+					"command": "starlight-generator.lua",
+					"when": "!inOutput && config.starlight-generator.showEditorContextMenu",
+					"group": "1_modification"
+				},
+				{
+					"command": "starlight-generator.cpp",
 					"when": "!inOutput && config.starlight-generator.showEditorContextMenu",
 					"group": "1_modification"
 				}
 			],
 			"explorer/context": [
 				{
-					"command": "starlight-generator.run",
+					"command": "starlight-generator.lua",
+					"when": "config.starlight-generator.explorerContextMenu",
+					"group": "1_modification"
+				},
+				{
+					"command": "starlight-generator.cpp",
 					"when": "config.starlight-generator.explorerContextMenu",
 					"group": "1_modification"
 				}
@@ -89,6 +109,10 @@
 		"lint": "eslint .",
 		"pretest": "npm run lint",
 		"test": "node ./test/runTest.js"
+	},
+	"commands": {
+		"file": "echo ${file}",
+		"fileDirname": "echo ${fileDirname}"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.1.4",

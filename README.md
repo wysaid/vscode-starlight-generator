@@ -31,7 +31,11 @@ Only support `lua` and `cpp`.
 ```jsonc
 {
     "key" : "ctrl+cmd+alt+l",
-    "command" : "starlight-generator.run"
+    "command" : "starlight-generator.lua"
+},
+{
+    "key" : "ctrl+cmd+alt+c",
+    "command" : "starlight-generator.cpp"
 }
 ```
 

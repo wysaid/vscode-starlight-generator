@@ -167,45 +167,59 @@ function activate(context) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "starlight-generator" is now active!');
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with  registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('starlight-generator.run', function () {
-		// The code you place here will be executed every time your command is executed
-
+	const commandFunc = (type, runPath) => {
 		// run starlight command
-
-		if (!arguments || arguments.length == 0) {
+		if (!runPath) {
 			vscode.window.showErrorMessage("StarLight-Generator: No param specified!");
 			return;
 		}
 
-		if (slRunner == null) {
-			slRunner = new StarLightRunner();
-		}
-
 		console.log("before performStarLight");
 		try {
-			const arg0 = arguments[0];
-			if (arg0.path) { /// maybe instance of file ?
-				slRunner.performStarLight("lua", arg0.path);
-			} else if (arg0 instanceof String) {
-				slRunner.performStarLight("lua", arguments[0]);
+			if (slRunner == null) {
+				slRunner = new StarLightRunner();
+			}
+			if (runPath.path) { /// maybe instance of file ?
+				slRunner.performStarLight(type, runPath.path);
 			} else {
-				slRunner.performStarLight("lua", arguments[0].toString());
+				if (runPath instanceof Array) {
+					runPath = runPath[0];
+				}
+
+				if (runPath === 'fromKey') {
+					slRunner.performStarLight(type, vscode.window.activeTextEditor.document.fileName);
+				} else if (runPath instanceof String) {
+					slRunner.performStarLight(type, runPath);
+				} else {
+					slRunner.performStarLight(type, runPath.toString());
+				}
 			}
 
 		} catch (err) {
 			console.log(err);
 		}
-		console.log("after performStarLight");
-	});
+		console.log("end performStarLight");
+	};
 
-	context.subscriptions.push(disposable);
+
+	context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.lua', (runPath) => {
+		// run starlight command
+		commandFunc.call(this, "lua", runPath);
+	}));
+
+	/////////////////////////////
+
+	context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.cpp', (runPath) => {
+		// run starlight command
+		commandFunc.call(this, "cpp", runPath);
+	}));
+
 }
 
 // this method is called when your extension is deactivated
 function deactivate() {
+	/// cleanup
+	slRunner = null;
 }
 
 module.exports = {
