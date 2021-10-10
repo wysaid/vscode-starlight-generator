@@ -39,7 +39,7 @@ Only support `lua` and `cpp`.
 }
 ```
 
-Press "ctlr+cmd+alt+l" to toggle Starlight-Generator with current active file/folder.
+Press "ctlr+cmd+alt+l" to trigger Starlight-Generator with current active file/folder.
 
 ## Context Menu
 
