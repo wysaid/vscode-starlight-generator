@@ -43,7 +43,7 @@
 				},
 				"starlight-generator.api_url": {
 					"type": "string",
-					"description": "A url to starlight service (default: https://starlight.yyyyy.tech)",
+					"description": "An url to starlight service (default: https://starlight.yyyyy.tech)",
 					"scope": "resource"
 				},
 				"starlight-generator.showEditorContextMenu": {

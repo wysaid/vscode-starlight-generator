@@ -39,11 +39,11 @@ Only support `lua` and `cpp`.
 }
 ```
 
-Press "ctlr+cmd+alt+l" to trigger Starlight-Generator with current active file/folder.
+Press "ctlr+cmd+alt+l" to trigger Starlight-Generator with currently active file/folder.
 
 ## Context Menu
 
-Just right clicking on the file explorer or the current opened file in the editor.
+Just right clicking on the file explorer or the currently opened file in the editor.
 
 ![](images/scr_shot_context_menu.png)
 
