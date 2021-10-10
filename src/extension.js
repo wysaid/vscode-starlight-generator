@@ -14,14 +14,14 @@ class StarLightRunner {
 	type = null;
 	slInstance = null;
 
-	progressInstance = null;
-	progressToken = null;
-	progressIncrement = 0;
-
+	progressPercent = 0;
+	progressPercentTo = 0;
 	progressResolve = null;
 	progressReject = null;
+	progressDurationTime = 0;
 
-	timeoutHandle = null;
+	intervalHandle = null;
+	currentProgressMessage = null;
 
 	constructor() {
 
@@ -34,19 +34,20 @@ class StarLightRunner {
 		if (inputDirStat.isFile()) {
 			inputDir = path.dirname(inputDir);
 		} else if (!inputDirStat.isDirectory()) {
-			vscode.window.showErrorMessage("Invalid file/directory: " + inputDir.path);
-			return;
+			vscode.window.showErrorMessage("StarLight-Generator: Invalid file/directory: " + inputDir.path);
+			return false;
 		}
 
 		if (this.slInstance) {
-			vscode.window.showInformationMessage("The StarLight-Generator is already running, please wait...");
-			return;
+			vscode.window.showInformationMessage("The last StarLight-Generator process is not finished, please try again...");
+			return false;
 		}
 
 		this.slInstance = new StarLight();
 
 		const slInstance = this.slInstance;
 
+		slInstance.stopRequested = false;
 		slInstance.onProgressCallback = this.onProgress.bind(this);
 		slInstance.onFileDownloadedCallback = this.onFileDownload.bind(this)
 		slInstance.onFinishCallback = this.onFinish.bind(this);
@@ -58,76 +59,101 @@ class StarLightRunner {
 		slInstance.outputDir = inputDir;
 		slInstance.cleanupOutputFolder = false;
 		slInstance.forceOverrideOutputFiles = true;
-		this.progressIncrement = 0;
-		const localThis = this;
 
-		vscode.window.withProgress({
-			location: vscode.ProgressLocation.Notification,
-			title: "StarLight-Generator is running!",
-			cancellable: true,
-		}, async function (progress, token) {
-			localThis.progressInstance = progress;
-			localThis.progressToken = token;
-			token.onCancellationRequested(localThis.onCancellationRequested);
+		if (slInstance.startRequest()) {
 
-			progress.report({ increment: 0, message: "StarLight-Generator start running!" });
-			localThis.slInstance.startRequest();
+			const localThis = this;
+			this.progressPercent = 0;
+			this.progressPercentTo = 0;
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				title: "StarLight-Generator is running",
+				cancellable: true,
+			}, async function (progress, token) {
+				localThis.progressInstance = progress;
+				localThis.progressToken = token;
+				token.onCancellationRequested(localThis.onCancellationRequested);
+				progress.report({ increment: 10, message: "StarLight-Generator start running!" });
 
-			const p = new Promise((resolve, reject) => {
-				progressResolve = resolve;
-				progressReject = reject;
-				/// End in ten minutes
-				localThis.timeoutHandle = setTimeout(() => {
-					localThis.timeoutHandle = null;
-					localThis.onError("request time out");
-				}, 10000);
+				if (localThis.intervalHandle) {
+					console.error("intervalHandle = " + intervalHandle);
+					vscode.window.showErrorMessage("StarLight-Generator: Unexpected error!!\n");
+					clearInterval(localThis.intervalHandle);
+					localThis.intervalHandle = null;
+				}
+
+				const p = new Promise((resolve, reject) => {
+					localThis.progressResolve = resolve;
+					localThis.progressReject = reject;
+					localThis.progressDurationTime = 0;
+					localThis.intervalHandle = setInterval(() => {
+						localThis.progressDurationTime += 1000;
+						/// End in 1 minute
+						if (localThis.progressDurationTime > 60000) {
+							localThis.onError("request time out");
+							return;
+						}
+
+						if (localThis.progressPercentTo < 99) {
+							let increment = localThis.progressPercentTo - localThis.progressPercent;
+							if (increment === 0 && localThis.progressPercentTo < 50) {
+								increment = 1;
+							}
+							localThis.progressPercentTo += increment;
+							localThis.progressPercent = localThis.progressPercentTo;
+							progress.report({
+								increment: increment,
+								message: localThis.progressMessage
+							});
+
+							console.log("Progress update - " + localThis.progressMessage + " " + localThis.progressPercent);
+							console.log("Taking time: " + localThis.progressDurationTime);
+						}
+
+					}, 1000);
+					console.error("intervalHandle = " + localThis.intervalHandle);
+				});
+				return p;
 			});
-			return p;
-		});
+		}
 	}
 
 	onCancellationRequested() {
 		console.log("Killing StarLight-Generator process");
+		vscode.window.showErrorMessage("StarLight-Generator: process cancelled!");
 		this.doReject();
+		if (this.slInstance) {
+			/// Mark as stopped, and let it go.
+			this.slInstance.stopRequested = true;
+			this.slInstance = null;
+		}
+		if (this.intervalHandle) {
+			clearInterval(this.intervalHandle);
+			this.intervalHandle = null;
+		}
 	}
 
 	onProgress(progressMessage) {
-		if (this.progressInstance) {
-
-			if (this.progressIncrement < 95) {
-				if (this.progressIncrement > 70) {
-					this.progressIncrement += 1;
-				} else {
-					this.progressIncrement += 10;
-				}
+		if (this.progressPercentTo < 95) {
+			if (this.progressPercentTo > 70) {
+				this.progressPercentTo += 5;
+			} else {
+				this.progressPercentTo += 15;
 			}
-
-			this.progressInstance.report({
-				increment: this.progressIncrement,
-				message: progressMessage
-			});
 		}
-
-		console.log(progressMessage);
+		this.progressMessage = progressMessage;
 	}
 
 	endPerform() {
-		if (this.timeoutHandle) {
-			clearTimeout(this.timeoutHandle);
-			this.timeoutHandle = null;
+		if (this.intervalHandle) {
+			clearInterval(this.intervalHandle);
+			this.intervalHandle = null;
 		}
+		this.slInstance.stopRequested = true;
 		this.slInstance = null;
 	}
 
 	doResolve() {
-		if (this.progressReject) {
-			this.progressReject();
-			this.progressReject = null;
-		}
-		this.endPerform();
-	}
-
-	doReject() {
 		if (this.progressResolve) {
 			this.progressResolve();
 			this.progressResolve = null;
@@ -135,8 +161,17 @@ class StarLightRunner {
 		this.endPerform();
 	}
 
+	doReject() {
+		if (this.progressReject) {
+			this.progressReject();
+			this.progressReject = null;
+		}
+		this.endPerform();
+	}
+
 	onError(err) {
 		this.doReject();
+		vscode.window.showErrorMessage("StarLight-Generator: " + (err ? err : "process filed!"));
 	}
 
 	onFileDownload(outputZipFile) {
@@ -197,6 +232,8 @@ function activate(context) {
 
 		} catch (err) {
 			console.log(err);
+			throw err;
+			slRunner = null;
 		}
 		console.log("end performStarLight");
 	};

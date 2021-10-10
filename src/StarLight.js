@@ -37,6 +37,8 @@ module.exports = class {
     // not implemented yet.
     starlightBinaryPath = null;
 
+    stopRequested = false;
+
     constructor(type, inputFolder, onProgressCallback, onFileDownloadedCallback, onFinishCallback, onErrorCallback) {
         this.type = type;
         this.inputFolder = inputFolder;
@@ -78,15 +80,7 @@ module.exports = class {
                 const localThis = this;
 
                 { /// Validate the input folder.
-                    /** @type {Array.<string>} */
-                    let filesToArchive = null;
-                    glob("**/*.+(json|vert|frag|glsl)", { cwd: this.inputFolder, sync: true }, (err, matches) => {
-                        if (err) {
-                            console.error(err);
-                        }
-                        filesToArchive = matches;
-                    });
-
+                    let filesToArchive = glob.sync("**/*.+(json|vert|frag|glsl)", { cwd: this.inputFolder, sync: true });
                     let isInputFolderValid = false;
                     if (filesToArchive && filesToArchive.length) {
                         let hasJson = false;
@@ -103,9 +97,13 @@ module.exports = class {
                     }
 
                     if (!isInputFolderValid) {
-                        this.onError("Invalid input folder!");
-                        return;
+                        this.onError("Invalid input folder/file!");
+                        return false;
                     }
+                }
+
+                if (localThis.stopRequested) {
+                    return false;
                 }
 
                 this.zipfile = this.tempDir + "/starlight_input.zip";
@@ -115,7 +113,9 @@ module.exports = class {
                     if (localThis.onProgressCallback) {
                         localThis.onProgressCallback(this.zipfile + " - archive total bytes: " + archiveFile.pointer());
                     }
-                    localThis.performStarLightPostRequest();
+                    if (!localThis.stopRequested) {
+                        localThis.performStarLightPostRequest();
+                    }
                 });
 
                 archiveFile.on('error', err => {
@@ -124,17 +124,24 @@ module.exports = class {
                     }
                     throw err;
                 });
+
+                archiveFile.on('progress', () => {
+                    if (localThis.stopRequested) {
+                        throw new Error("Stop requested!");
+                    }
+                });
+
                 archiveFile.pipe(output);
                 // archiveFile.directory(this.inputFolder, false);
                 archiveFile.glob("**/*.+(json|vert|frag|glsl)", { cwd: this.inputFolder });
                 archiveFile.finalize();
             } else {
-                if (this.onErrorCallback) {
-                    this.onErrorCallback(new Error("Invalid input folder!"));
-                }
+                this.onError("Invalid input folder/file!");
                 return false;
             }
         }
+
+        return true;
     }
 
     performStarLightPostRequest() {
@@ -164,6 +171,9 @@ module.exports = class {
 
                 resHttps.on('data', (data) => {
                     outputFile.write(data);
+                    if (localThis.stopRequested) {
+                        throw new Error("Stop requested!");
+                    }
                 });
 
                 resHttps.on('close', () => {
@@ -175,7 +185,9 @@ module.exports = class {
                         localThis.onFileDownloadedCallback(this.responseZipFilePath);
                     }
 
-                    localThis.performCopyFiles(localThis.outputDir);
+                    if (!localThis.stopRequested) {
+                        localThis.performCopyFiles(localThis.outputDir);
+                    }
                 });
 
             }
