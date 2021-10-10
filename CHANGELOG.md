@@ -4,6 +4,11 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## 0.1.1
+
+- Readme spell fix
+- Show warning msg when process with invalid folders/files.
+
+## 0.1.0
 
 - Initial release

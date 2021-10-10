@@ -11,6 +11,7 @@ const os = require('os');
 const FormData = require('form-data');
 const Unzipper = require('decompress-zip');
 const archiver = require('archiver');
+const glob = require('glob');
 
 module.exports = class {
 
@@ -54,6 +55,12 @@ module.exports = class {
         }
     }
 
+    onError(err) {
+        if (this.onErrorCallback) {
+            this.onErrorCallback(err);
+        }
+    }
+
     startRequest() {
 
         if (!this.type) {
@@ -62,15 +69,48 @@ module.exports = class {
 
         console.log("startRequest called with type: " + this.type);
 
-        if (!this.zipfile) {
-            if (this.inputFolder) { /// Create the zipfile if input is a directory.
+        if (!this.zipfile || !fs.statSync(this.zipfile).isFile()) {
+            /// Create the zipfile if input is a directory.
+            if (this.inputFolder && fs.statSync(this.inputFolder).isDirectory()) {
                 if (this.onProgressCallback) {
                     this.onProgressCallback("Create the zipfile as the input is a directory");
                 }
+                const localThis = this;
+
+                { /// Validate the input folder.
+                    /** @type {Array.<string>} */
+                    let filesToArchive = null;
+                    glob("**/*.+(json|vert|frag|glsl)", { cwd: this.inputFolder, sync: true }, (err, matches) => {
+                        if (err) {
+                            console.error(err);
+                        }
+                        filesToArchive = matches;
+                    });
+
+                    let isInputFolderValid = false;
+                    if (filesToArchive && filesToArchive.length) {
+                        let hasJson = false;
+                        let hasShader = false;
+                        isInputFolderValid = filesToArchive.some(file => {
+                            if (file.endsWith(".json")) {
+                                hasJson = true;
+                            }
+                            if (file.endsWith(".glsl") || file.endsWith(".vert") || file.endsWith(".frag")) {
+                                hasShader = true;
+                            }
+                            return hasJson && hasShader;
+                        });
+                    }
+
+                    if (!isInputFolderValid) {
+                        this.onError("Invalid input folder!");
+                        return;
+                    }
+                }
+
                 this.zipfile = this.tempDir + "/starlight_input.zip";
                 const output = fs.createWriteStream(this.zipfile);
                 const archiveFile = archiver('zip');
-                const localThis = this;
                 output.on('close', () => {
                     if (localThis.onProgressCallback) {
                         localThis.onProgressCallback(this.zipfile + " - archive total bytes: " + archiveFile.pointer());
@@ -78,12 +118,20 @@ module.exports = class {
                     localThis.performStarLightPostRequest();
                 });
 
-                archiveFile.on('error', (err) => { throw err; });
+                archiveFile.on('error', err => {
+                    if (localThis.onErrorCallback) {
+                        localThis.onErrorCallback(err);
+                    }
+                    throw err;
+                });
                 archiveFile.pipe(output);
                 // archiveFile.directory(this.inputFolder, false);
                 archiveFile.glob("**/*.+(json|vert|frag|glsl)", { cwd: this.inputFolder });
                 archiveFile.finalize();
             } else {
+                if (this.onErrorCallback) {
+                    this.onErrorCallback(new Error("Invalid input folder!"));
+                }
                 return false;
             }
         }
