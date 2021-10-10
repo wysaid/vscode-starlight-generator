@@ -4,6 +4,10 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.2.1
+
+- Fix wrong tips after click `cancel`.
+
 ## 0.2.0
 
 - Implement `cancel`.

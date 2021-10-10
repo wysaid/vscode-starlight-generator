@@ -72,7 +72,7 @@ class StarLightRunner {
 			}, async function (progress, token) {
 				localThis.progressInstance = progress;
 				localThis.progressToken = token;
-				token.onCancellationRequested(localThis.onCancellationRequested);
+				token.onCancellationRequested(localThis.onCancellationRequested.bind(localThis));
 				progress.report({ increment: 10, message: "StarLight-Generator start running!" });
 
 				if (localThis.intervalHandle) {
