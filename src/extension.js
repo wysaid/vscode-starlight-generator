@@ -76,7 +76,7 @@ class StarLightRunner {
 				progress.report({ increment: 10, message: "StarLight-Generator start running!" });
 
 				if (localThis.intervalHandle) {
-					console.error("intervalHandle = " + intervalHandle);
+					console.error("intervalHandle = " + localThis.intervalHandle);
 					vscode.window.showErrorMessage("StarLight-Generator: Unexpected error!!\n");
 					clearInterval(localThis.intervalHandle);
 					localThis.intervalHandle = null;
@@ -87,7 +87,7 @@ class StarLightRunner {
 					localThis.progressReject = reject;
 					localThis.progressDurationTime = 0;
 					localThis.intervalHandle = setInterval(() => {
-						localThis.progressDurationTime += 1000;
+						localThis.progressDurationTime += 500;
 						/// End in 1 minute
 						if (localThis.progressDurationTime > 60000) {
 							localThis.onError("request time out");
@@ -110,7 +110,7 @@ class StarLightRunner {
 							console.log("Taking time: " + localThis.progressDurationTime);
 						}
 
-					}, 1000);
+					}, 500);
 					console.error("intervalHandle = " + localThis.intervalHandle);
 				});
 				return p;
