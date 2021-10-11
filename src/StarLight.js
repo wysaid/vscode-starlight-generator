@@ -78,15 +78,20 @@ module.exports = class {
                     this.onProgressCallback("Create the zipfile as the input is a directory");
                 }
                 const localThis = this;
+                const globPattern = "**/*.+(sl.json|vert|frag|glsl)";
 
                 { /// Validate the input folder.
-                    let filesToArchive = glob.sync("**/*.+(json|vert|frag|glsl)", { cwd: this.inputFolder, sync: true });
+                    let filesToArchive = glob.sync(globPattern, {
+                        cwd: this.inputFolder,
+                        nocase: true,
+                        sync: true
+                    });
                     let isInputFolderValid = false;
                     if (filesToArchive && filesToArchive.length) {
                         let hasJson = false;
                         let hasShader = false;
                         isInputFolderValid = filesToArchive.some(file => {
-                            if (file.endsWith(".json")) {
+                            if (file.endsWith(".sl.json")) {
                                 hasJson = true;
                             }
                             if (file.endsWith(".glsl") || file.endsWith(".vert") || file.endsWith(".frag")) {
@@ -133,7 +138,7 @@ module.exports = class {
 
                 archiveFile.pipe(output);
                 // archiveFile.directory(this.inputFolder, false);
-                archiveFile.glob("**/*.+(json|vert|frag|glsl)", { cwd: this.inputFolder });
+                archiveFile.glob(globPattern, { cwd: this.inputFolder, nocase: true });
                 archiveFile.finalize();
             } else {
                 this.onError("Invalid input folder/file!");

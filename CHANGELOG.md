@@ -4,6 +4,10 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.2.2
+
+- Force "*.sl.json" as default index files suffix.
+
 ## 0.2.1
 
 - Fix wrong tips after click `cancel`.
