@@ -8,6 +8,8 @@ const fs = require('fs-extra');
 const path = require('path');
 
 const StarLight = require('./StarLight');
+const { create } = require('domain');
+const ShaderTemplateCreator = require('./ShaderTemplateCreator');
 
 class StarLightRunner {
 
@@ -192,6 +194,7 @@ class StarLightRunner {
 }
 
 let slRunner = null;
+let slCreator = null;
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -202,61 +205,75 @@ function activate(context) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "starlight-generator" is now active!');
 
-	const commandFunc = (type, runPath) => {
-		// run starlight command
-		if (!runPath) {
-			vscode.window.showErrorMessage("StarLight-Generator: No param specified!");
-			return;
-		}
-
-		console.log("before performStarLight");
-		try {
-			if (slRunner == null) {
-				slRunner = new StarLightRunner();
-			}
-			if (runPath.path) { /// maybe instance of file ?
-				slRunner.performStarLight(type, runPath.path);
-			} else {
-				if (runPath instanceof Array) {
-					runPath = runPath[0];
-				}
-
-				if (runPath === 'fromKey') {
-					slRunner.performStarLight(type, vscode.window.activeTextEditor.document.fileName);
-				} else if (runPath instanceof String) {
-					slRunner.performStarLight(type, runPath);
-				} else {
-					slRunner.performStarLight(type, runPath.toString());
-				}
-			}
-
-		} catch (err) {
-			console.log(err);
-			throw err;
-			slRunner = null;
-		}
-		console.log("end performStarLight");
-	};
-
-
 	context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.lua', (runPath) => {
 		// run starlight command
-		commandFunc.call(this, "lua", runPath);
+		routeCall("lua", runPath);
 	}));
 
 	/////////////////////////////
 
 	context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.cpp', (runPath) => {
 		// run starlight command
-		commandFunc.call(this, "cpp", runPath);
+		routeCall("cpp", runPath);
 	}));
 
+	/////////////////////////////
+
+	context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.createShaderTemplate', (runPath) => {
+		// run starlight command
+		routeCall("createShaderTemplate", runPath);
+	}));
+}
+
+function routeCall(type, runPath) {
+	if (!runPath) {
+		vscode.window.showErrorMessage("StarLight-Generator: No param specified!");
+		return;
+	}
+
+	if (type == "lua" || type == "cpp") {
+		performStarLight(type, runPath);
+	}
+	else if (type == "createShaderTemplate") {
+		slCreator = new ShaderTemplateCreator(runPath.path);
+		slCreator.create();
+	}
+}
+
+function performStarLight(type, runPath) {
+	console.log(`before performStarLight ${type}`);
+	try {
+		if (slRunner == null) {
+			slRunner = new StarLightRunner();
+		}
+		if (runPath.path) { /// maybe instance of file ?
+			slRunner.performStarLight(type, runPath.path);
+		} else {
+			if (runPath instanceof Array) {
+				runPath = runPath[0];
+			}
+
+			if (runPath === 'fromKey') {
+				slRunner.performStarLight(type, vscode.window.activeTextEditor.document.fileName);
+			} else if (runPath instanceof String) {
+				slRunner.performStarLight(type, runPath);
+			} else {
+				slRunner.performStarLight(type, runPath.toString());
+			}
+		}
+	} catch (err) {
+		slRunner = null;
+		console.log(err);
+		throw err;
+	}
+	console.log(`end performStarLight`);
 }
 
 // this method is called when your extension is deactivated
 function deactivate() {
 	/// cleanup
 	slRunner = null;
+	slCreator = null;
 }
 
 module.exports = {

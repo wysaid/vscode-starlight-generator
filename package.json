@@ -18,7 +18,8 @@
 	],
 	"activationEvents": [
 		"onCommand:starlight-generator.lua",
-		"onCommand:starlight-generator.cpp"
+		"onCommand:starlight-generator.cpp",
+		"onCommand:starlight-generator.createShaderTemplate"
 	],
 	"main": "./src/extension.js",
 	"contributes": {
@@ -30,6 +31,10 @@
 			{
 				"command": "starlight-generator.cpp",
 				"title": "2. Run StarLight-Generator cpp with current file/directory"
+			},
+			{
+				"command": "starlight-generator.createShaderTemplate",
+				"title": "3. Create StarLight shader template in current directory"
 			}
 		],
 		"configuration": {
@@ -99,6 +104,11 @@
 				},
 				{
 					"command": "starlight-generator.cpp",
+					"when": "config.starlight-generator.explorerContextMenu",
+					"group": "1_modification"
+				},
+				{
+					"command": "starlight-generator.createShaderTemplate",
 					"when": "config.starlight-generator.explorerContextMenu",
 					"group": "1_modification"
 				}
