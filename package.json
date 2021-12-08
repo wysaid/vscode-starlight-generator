@@ -2,7 +2,7 @@
 	"name": "starlight-generator",
 	"displayName": "StarLight-Generator",
 	"description": "An auto generator for https://starlight.yyyyy.tech",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"icon": "images/logo.png",
 	"publisher": "wysaid",
 	"repository": {
@@ -19,7 +19,9 @@
 	"activationEvents": [
 		"onCommand:starlight-generator.lua",
 		"onCommand:starlight-generator.cpp",
-		"onCommand:starlight-generator.createShaderTemplate"
+		"onCommand:starlight-generator.createShaderTemplate",
+		"onCommand:starlight-generator.encode",
+		"onCommand:starlight-generator.decode"
 	],
 	"main": "./src/extension.js",
 	"contributes": {
@@ -35,6 +37,14 @@
 			{
 				"command": "starlight-generator.createShaderTemplate",
 				"title": "3. Create StarLight shader template in current directory"
+			},
+			{
+				"command": "starlight-generator.encode",
+				"title": "4. encode current file/directory"
+			},
+			{
+				"command": "starlight-generator.decode",
+				"title": "5. decode current file/directory"
 			}
 		],
 		"configuration": {
@@ -49,6 +59,12 @@
 				"starlight-generator.api_url": {
 					"type": "string",
 					"description": "An url to starlight service (default: https://starlight.yyyyy.tech)",
+					"scope": "resource"
+				},
+				"starlight-generator.decodedFileSuffix": {
+					"type": "string",
+					"default": "txt",
+					"description": "The suffix which decoded file has",
 					"scope": "resource"
 				},
 				"starlight-generator.showEditorContextMenu": {
@@ -109,6 +125,16 @@
 				},
 				{
 					"command": "starlight-generator.createShaderTemplate",
+					"when": "config.starlight-generator.explorerContextMenu",
+					"group": "1_modification"
+				},
+				{
+					"command": "starlight-generator.encode",
+					"when": "config.starlight-generator.explorerContextMenu",
+					"group": "1_modification"
+				},
+				{
+					"command": "starlight-generator.decode",
 					"when": "config.starlight-generator.explorerContextMenu",
 					"group": "1_modification"
 				}

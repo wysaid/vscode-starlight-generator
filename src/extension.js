@@ -10,6 +10,9 @@ const path = require('path');
 const StarLight = require('./StarLight');
 const { create } = require('domain');
 const ShaderTemplateCreator = require('./ShaderTemplateCreator');
+const FMCoder = require('./coder');
+const { ENODEV } = require('constants');
+const { encode } = require('punycode');
 
 class StarLightRunner {
 
@@ -195,6 +198,7 @@ class StarLightRunner {
 
 let slRunner = null;
 let slCreator = null;
+let slCoder = null;
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -206,22 +210,23 @@ function activate(context) {
 	console.log('Congratulations, your extension "starlight-generator" is now active!');
 
 	context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.lua', (runPath) => {
-		// run starlight command
 		routeCall("lua", runPath);
 	}));
 
-	/////////////////////////////
-
 	context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.cpp', (runPath) => {
-		// run starlight command
 		routeCall("cpp", runPath);
 	}));
 
-	/////////////////////////////
-
 	context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.createShaderTemplate', (runPath) => {
-		// run starlight command
 		routeCall("createShaderTemplate", runPath);
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.encode', (runPath) => {
+		routeCall("encode", runPath);
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.decode', (runPath) => {
+		routeCall("decode", runPath);
 	}));
 }
 
@@ -231,13 +236,35 @@ function routeCall(type, runPath) {
 		return;
 	}
 
-	if (type == "lua" || type == "cpp") {
+	if (type == "lua" || type == "cpp") 
+	{
 		performStarLight(type, runPath);
 	}
-	else if (type == "createShaderTemplate") {
+	else if (type == "createShaderTemplate") 
+	{
 		slCreator = new ShaderTemplateCreator(runPath.path);
 		slCreator.create();
 	}
+	else if (type == "encode")
+	{
+		encodeFile(runPath)
+	}
+	else if (type == "decode")
+	{
+		decodeFile(runPath)
+	}
+}
+
+function encodeFile(runPath)
+{
+	slCoder = new FMCoder.Coder(runPath.path)
+	slCoder.encode()
+}
+
+function decodeFile(runPath)
+{
+	slCoder = new FMCoder.Coder(runPath.path)
+	slCoder.decode()
 }
 
 function performStarLight(type, runPath) {
@@ -274,6 +301,7 @@ function deactivate() {
 	/// cleanup
 	slRunner = null;
 	slCreator = null;
+	slCoder = null;
 }
 
 module.exports = {
