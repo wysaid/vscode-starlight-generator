@@ -4,6 +4,12 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.3.2
+
+- Encode/Decode support find files recursively.
+- make Encoding url configurable.
+- Add success notification on status bar.
+
 ## 0.3.1
 
 - Add Encode/Decode Function to lua file/folder.
