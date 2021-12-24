@@ -2,7 +2,7 @@
 	"name": "starlight-generator",
 	"displayName": "StarLight-Generator",
 	"description": "An auto generator for https://starlight.yyyyy.tech",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"icon": "images/logo.png",
 	"publisher": "wysaid",
 	"repository": {
@@ -65,6 +65,12 @@
 					"type": "string",
 					"default": "txt",
 					"description": "The suffix which decoded file has",
+					"scope": "resource"
+				},
+				"starlight-generator.encodingURL": {
+					"type": "string",
+					"default": "http://mac.yyyyy.tech/faceDetect/encode.php",
+					"description": "The encoding url",
 					"scope": "resource"
 				},
 				"starlight-generator.showEditorContextMenu": {
