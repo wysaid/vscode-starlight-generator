@@ -4,7 +4,7 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## 0.3.3
+## 0.3.4
 
 - Encode/Decode support find files recursively.
 - make Encoding url configurable.
