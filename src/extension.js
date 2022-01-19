@@ -176,7 +176,7 @@ class StarLightRunner {
 
 	onError(err) {
 		this.doReject();
-		vscode.window.showErrorMessage("StarLight-Generator: " + (err ? err : "process filed!"));
+		vscode.window.showErrorMessage("StarLight-Generator: " + (err ? err : "process failed!"));
 	}
 
 	onFileDownload(outputZipFile) {
