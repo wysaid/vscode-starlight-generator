@@ -21,7 +21,8 @@
 		"onCommand:starlight-generator.cpp",
 		"onCommand:starlight-generator.createShaderTemplate",
 		"onCommand:starlight-generator.encode",
-		"onCommand:starlight-generator.decode"
+		"onCommand:starlight-generator.decode",
+		"onCommand:starlight-generator.effectHelper"
 	],
 	"main": "./src/extension.js",
 	"contributes": {
@@ -45,6 +46,10 @@
 			{
 				"command": "starlight-generator.decode",
 				"title": "5. decode current file/directory"
+			},
+			{
+				"command": "starlight-generator.effectHelper",
+				"title": "6. Effect Helper Options"
 			}
 		],
 		"configuration": {
