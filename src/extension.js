@@ -8,11 +8,8 @@ const fs = require('fs-extra');
 const path = require('path');
 
 const StarLight = require('./StarLight');
-const { create } = require('domain');
 const ShaderTemplateCreator = require('./ShaderTemplateCreator');
 const FMCoder = require('./coder');
-const { ENODEV } = require('constants');
-const { encode } = require('punycode');
 
 class StarLightRunner {
 
@@ -236,33 +233,27 @@ function routeCall(type, runPath) {
 		return;
 	}
 
-	if (type == "lua" || type == "cpp") 
-	{
+	if (type == "lua" || type == "cpp") {
 		performStarLight(type, runPath);
 	}
-	else if (type == "createShaderTemplate") 
-	{
+	else if (type == "createShaderTemplate") {
 		slCreator = new ShaderTemplateCreator(runPath.path);
 		slCreator.create();
 	}
-	else if (type == "encode")
-	{
+	else if (type == "encode") {
 		encodeFile(runPath)
 	}
-	else if (type == "decode")
-	{
+	else if (type == "decode") {
 		decodeFile(runPath)
 	}
 }
 
-function encodeFile(runPath)
-{
+function encodeFile(runPath) {
 	slCoder = new FMCoder.Coder(runPath.path)
 	slCoder.encode()
 }
 
-function decodeFile(runPath)
-{
+function decodeFile(runPath) {
 	slCoder = new FMCoder.Coder(runPath.path)
 	slCoder.decode()
 }

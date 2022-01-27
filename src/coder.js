@@ -6,7 +6,6 @@ const fs = require('fs');
 const path = require('path');
 const urllib = require('urllib')
 const formstream = require('formstream');
-const { resolve } = require('path');
 
 class Coder {
     inputPath = ''
