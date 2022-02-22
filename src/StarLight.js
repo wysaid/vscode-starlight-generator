@@ -226,7 +226,7 @@ module.exports = class {
         });
 
         if (!this.forceOverrideOutputFiles && outputDir === this.inputFolder) {
-            throw new Error(`The files at ${$outputDir} will be overwritten!`);
+            throw new Error(`The files at ${outputDir} will be overwritten!`);
         }
 
         unzip.extract({

@@ -14,7 +14,13 @@
 		"vscode": "^1.61.0"
 	},
 	"categories": [
+		"Programming Languages",
 		"Other"
+	],
+	"keywords": [
+		"ytech",
+		"kuaishou",
+		"kwai"
 	],
 	"activationEvents": [
 		"onCommand:starlight-generator.lua",
