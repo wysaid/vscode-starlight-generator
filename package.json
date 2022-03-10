@@ -2,7 +2,7 @@
 	"name": "starlight-generator",
 	"displayName": "StarLight-Generator",
 	"description": "An auto generator for https://starlight.yyyyy.tech",
-	"version": "0.3.4",
+	"version": "0.3.5",
 	"icon": "images/logo.png",
 	"publisher": "wysaid",
 	"repository": {
@@ -47,15 +47,15 @@
 			},
 			{
 				"command": "starlight-generator.encode",
-				"title": "4. encode current file/directory"
+				"title": "4. StarLight: encode current file/directory"
 			},
 			{
 				"command": "starlight-generator.decode",
-				"title": "5. decode current file/directory"
+				"title": "5. StarLight: decode current file/directory"
 			},
 			{
 				"command": "starlight-generator.effectHelper",
-				"title": "6. Effect Helper Options"
+				"title": "6. StarLight: Effect Helper Options"
 			}
 		],
 		"configuration": {
@@ -80,7 +80,7 @@
 				},
 				"starlight-generator.encodingURL": {
 					"type": "string",
-					"default": "http://mac.yyyyy.tech/faceDetect/encode.php",
+					"default": "https://yyyyy.tech/faceDetect/encode.php",
 					"description": "The encoding url",
 					"scope": "resource"
 				},
