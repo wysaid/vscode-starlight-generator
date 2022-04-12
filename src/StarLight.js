@@ -12,6 +12,7 @@ const FormData = require('form-data');
 const Unzipper = require('decompress-zip');
 const archiver = require('archiver');
 const glob = require('glob');
+const vscode = require('vscode');
 
 module.exports = class {
 
@@ -157,7 +158,8 @@ module.exports = class {
 
         form.append('type', this.type);
         form.append('zipfile', fs.createReadStream(this.zipfile));
-        form.submit('https://starlight.yyyyy.tech', (err, resHttps) => {
+        let api_url = vscode.workspace.getConfiguration("starlight-generator").get("api_url");
+        form.submit(api_url, (err, resHttps) => {
             if (err) {
                 throw err;
             } else {
