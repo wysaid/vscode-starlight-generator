@@ -4,7 +4,7 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## 0.3.5
+## 0.3.6
 
 - Fix Encode/Decode, use <https://yyyyy.tech>
 
