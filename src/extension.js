@@ -227,9 +227,10 @@ function activate(context) {
 	}));
 }
 
-function routeCall(type, runPath) {
+function routeCall(type, runPath = vscode.window.activeTextEditor?.document?.fileName) {
+	console.info(`run routeCall("${type}", "${runPath}")`);
 	if (!runPath) {
-		vscode.window.showErrorMessage("StarLight-Generator: No param specified!");
+		vscode.window.showErrorMessage("StarLight-Generator: No file/directory specified!");
 		return;
 	}
 
@@ -271,9 +272,7 @@ function performStarLight(type, runPath) {
 				runPath = runPath[0];
 			}
 
-			if (runPath === 'fromKey') {
-				slRunner.performStarLight(type, vscode.window.activeTextEditor.document.fileName);
-			} else if (runPath instanceof String) {
+			if (runPath instanceof String) {
 				slRunner.performStarLight(type, runPath);
 			} else {
 				slRunner.performStarLight(type, runPath.toString());

@@ -103,18 +103,12 @@
 			{
 				"command": "starlight-generator.lua",
 				"key": "ctrl+cmd+alt+l",
-				"mac": "ctrl+cmd+alt+l",
-				"args": [
-					"fromKey"
-				]
+				"mac": "ctrl+cmd+alt+l"
 			},
 			{
 				"command": "starlight-generator.cpp",
 				"key": "ctrl+cmd+alt+c",
-				"mac": "ctrl+cmd+alt+c",
-				"args": [
-					"fromKey"
-				]
+				"mac": "ctrl+cmd+alt+c"
 			}
 		],
 		"menus": {
