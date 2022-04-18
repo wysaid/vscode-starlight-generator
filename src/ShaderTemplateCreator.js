@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 var extPath = vscode.extensions.getExtension("wysaid.starlight-generator")?.extensionPath;
 
-module.exports = class {
+class ShaderTemplateCreator {
     inputDir = "";
     shaderDir = "";
     shaderName = "";
@@ -121,3 +121,4 @@ module.exports = class {
     }
 };
 
+module.exports = { ShaderTemplateCreator }
