@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "es2017",
+		"allowJs": true,
+		"strictNullChecks": true,
+		"noImplicitAny": true,
+		"sourceMap": true,
+		"rootDir": "src",
+		"outDir": "dist",
+		"strict": true,
+		"noImplicitReturns": true,
+		"noImplicitThis": true,
+		"forceConsistentCasingInFileNames": true,
+		"removeComments": true,
+		"moduleResolution": "Node"
+	},
+	"include": [
+		"src/**/*"
+	]
+}

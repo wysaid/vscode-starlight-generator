@@ -30,7 +30,7 @@
 		"onCommand:starlight-generator.decode",
 		"onCommand:starlight-generator.effectHelper"
 	],
-	"main": "./src/extension.js",
+	"main": "dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
@@ -69,6 +69,7 @@
 				},
 				"starlight-generator.api_url": {
 					"type": "string",
+					"default": "https://starlight.yyyyy.tech",
 					"description": "An url to starlight service (default: https://starlight.yyyyy.tech)",
 					"scope": "resource"
 				},
@@ -102,18 +103,12 @@
 			{
 				"command": "starlight-generator.lua",
 				"key": "ctrl+cmd+alt+l",
-				"mac": "ctrl+cmd+alt+l",
-				"args": [
-					"fromKey"
-				]
+				"mac": "ctrl+cmd+alt+l"
 			},
 			{
 				"command": "starlight-generator.cpp",
 				"key": "ctrl+cmd+alt+c",
-				"mac": "ctrl+cmd+alt+c",
-				"args": [
-					"fromKey"
-				]
+				"mac": "ctrl+cmd+alt+c"
 			}
 		],
 		"menus": {
@@ -161,16 +156,19 @@
 	"scripts": {
 		"lint": "eslint .",
 		"pretest": "npm run lint",
-		"test": "node ./test/runTest.js"
+		"test": "node ./test/runTest.js",
+		"vsext": "rm -rf dist && npx tsc && npx vsce package"
 	},
 	"commands": {
 		"file": "echo ${file}",
 		"fileDirname": "echo ${fileDirname}"
 	},
 	"devDependencies": {
+		"@types/archiver": "^5.3.1",
+		"@types/fs-extra": "^9.0.13",
 		"@types/glob": "^7.1.4",
 		"@types/mocha": "^9.0.0",
-		"@types/node": "14.x",
+		"@types/node": "^16",
 		"@types/vscode": "^1.61.0",
 		"@vscode/test-electron": "^1.6.2",
 		"eslint": "^8.0.0",
@@ -179,7 +177,7 @@
 	},
 	"dependencies": {
 		"archiver": "^5.3.0",
-		"decompress-zip": "^0.3.3",
+		"extract-zip": "^2.0.1",
 		"form-data": "^4.0.0",
 		"formstream": "^1.1.1",
 		"fs-extra": "^10.0.0",
