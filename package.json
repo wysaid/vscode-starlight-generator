@@ -2,7 +2,7 @@
 	"name": "starlight-generator",
 	"displayName": "StarLight-Generator",
 	"description": "An auto generator for https://starlight.yyyyy.tech",
-	"version": "0.3.6",
+	"version": "0.3.7",
 	"icon": "images/logo.png",
 	"publisher": "wysaid",
 	"repository": {
@@ -11,7 +11,7 @@
 	},
 	"homepage": "https://github.com/wysaid/vscode-starlight-generator",
 	"engines": {
-		"vscode": "^1.61.0"
+		"vscode": "^1.63.0"
 	},
 	"categories": [
 		"Programming Languages",
