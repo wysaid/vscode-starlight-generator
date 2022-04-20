@@ -74,8 +74,6 @@ export class StarLight extends events.EventEmitter {
         } else {
             await this.performRemote(type);
         }
-
-        // TODO: check .starlight.log
     }
 
     // 使用本地二进制程序执行
@@ -212,6 +210,18 @@ export class StarLight extends events.EventEmitter {
         this.updateProgress(0, "extracting received zip archive...");
 
         await this.awaitOrCancel(extractZip(zipFile, { dir: this.inputDir }));
+
+        // 删除无错误信息的 .starlight.log 文件
+        const logFile = path.join(this.inputDir, '.starlight.log');
+        if ((await this.awaitOrCancel(fs.stat(logFile))).isFile()) {
+            const logContent = await this.awaitOrCancel(fs.readFile(logFile, { encoding: "utf-8" }));
+            if (logContent.search(/\[ERROR\]/i) != -1) {
+                throw Error(`Error occured during generation, please check ${logFile}`)
+            } else if (logContent.search(/\[WARNING\]|\[INFO\]/i) == -1) {
+                await this.awaitOrCancel(fs.rm(logFile));
+            }
+        }
+
         this.updateProgress(25, "starligt generate done");
     }
 }
