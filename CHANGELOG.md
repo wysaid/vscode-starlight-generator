@@ -4,6 +4,9 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.4.1
+- Change pre-release to release
+
 ## 0.3.7
 
 - Use TypeScript.
