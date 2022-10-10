@@ -18,18 +18,34 @@ const TIMEOUT = 10000;
 const globPattern = "**/*.+(sl.json|vert|frag|glsl)";
 
 export class StarLight extends events.EventEmitter {
+    inputShaderFile?: string; ///< Single file mode enabled if not undefined.
+    refShaderFile?: string; ///< referenced shader file by inputShaderFile.
+    inputJsonFile?: string; ///< Only referenced file will be handled if not undefined.
     inputDir: string;
     tmpDir: string;
     updateProgress: (inc: number, msg?: string) => void;
     cancelEvent: Promise<void>;
     isCanceled = false;
+    type: "lua" | "cpp";
 
     constructor(options: { runDir: string, updateProgressCallback: (inc: number, msg?: string) => void }) {
         super();
         const inputDir = options.runDir;
         const inputDirStat = fs.statSync(inputDir);
         this.inputDir = inputDir;
+        this.type = "cpp";
         if (inputDirStat.isFile()) {
+
+            /// only `*.spv.vert`、 `*.spv.frag` and `*.spv.glsl`.
+            if (inputDir.endsWith("spv.vert") || inputDir.endsWith("spv.frag") || inputDir.endsWith("spv.glsl")) {
+                this.inputShaderFile = inputDir;
+            }
+
+            /// only `*.sl.json`
+            if (inputDir.endsWith("sl.json")) {
+                this.inputJsonFile = inputDir;
+            }
+
             this.inputDir = path.dirname(inputDir);
         } else if (!inputDirStat.isDirectory()) {
             throw Error(`StarLight-Generator: Invalid file/directory: ${inputDir}`);
@@ -46,7 +62,6 @@ export class StarLight extends events.EventEmitter {
         console.info("new StarLight instance:")
         console.info(`  inputDir: ${this.inputDir}`)
         console.info(`  tmpDir: ${this.tmpDir}`)
-
     }
 
     // 用此函数加工 Promise, 使其可取消
@@ -64,20 +79,20 @@ export class StarLight extends events.EventEmitter {
             this.emit('cancel');
     }
 
-    async performStarLight(type: string) {
+    async performStarLight(type: "lua" | "cpp") {
         await this.awaitOrCancel(this.checkInputDir());
 
         const localBin = vscode.workspace.getConfiguration("starlight-generator").get<string>("binary_path");
-
+        this.type = type;
         if (localBin) {
-            await this.performLocal(localBin, type);
+            await this.performLocal(localBin);
         } else {
-            await this.performRemote(type);
+            await this.performRemote();
         }
     }
 
     // 使用本地二进制程序执行
-    async performLocal(localBin: string, type: string) {
+    async performLocal(localBin: string) {
         const files = await this.awaitOrCancel(glob("**/*.sl.json", {
             cwd: this.inputDir,
             nocase: true,
@@ -91,7 +106,7 @@ export class StarLight extends events.EventEmitter {
             const commandArgs = [
                 '--batch-template', indexFile,
                 '--output-to-json-file-path',
-                '--template-language', type,
+                '--template-language', this.type,
             ].concat(subdirArgs);
             const ac = new AbortController();
             const { stdout, stderr } = await this.awaitOrCancel(execFile(localBin, commandArgs, {
@@ -106,10 +121,10 @@ export class StarLight extends events.EventEmitter {
     }
 
     // 打包, 请求服务, 解压返回压缩包
-    async performRemote(type: string) {
+    async performRemote() {
         // Create the zipfile
         const zipFile = await this.awaitOrCancel(this.createZipFile());
-        const resZipFile = await this.awaitOrCancel(this.submitAndDownload(type, zipFile));
+        const resZipFile = await this.awaitOrCancel(this.submitAndDownload(zipFile));
 
         await this.awaitOrCancel(this.extractResult(resZipFile));
     }
@@ -129,6 +144,49 @@ export class StarLight extends events.EventEmitter {
         }
     }
 
+    /**
+     * @param subDir ext info for recursive call.
+     * @returns the index file or null
+     */
+    getJsonContentOfInputShader(subDir?: string): string | null {
+        if (!subDir && this.inputShaderFile) {
+            subDir = path.dirname(this.inputShaderFile as string);
+        }
+
+        if (!subDir || subDir.length === 0 || subDir === '.' || subDir === '/') {
+            return null;
+        }
+
+        let indexContent: string | null = null;
+        const subDirFiles = fs.readdirSync(subDir);
+        const inputShaderFile = path.basename(this.inputShaderFile as string);
+
+        for (let fileName of subDirFiles) {
+            if (fileName.endsWith('.sl.json')) {
+                let jsonInfo = JSON.parse(fs.readFileSync(path.join(subDir, fileName)).toString());
+                let dataArr = jsonInfo.data as Array<any>;
+
+                if (dataArr && dataArr instanceof Array) {
+                    for (let item of dataArr) {
+                        if (item.vsh === inputShaderFile || item.fsh === inputShaderFile) {
+                            this.refShaderFile = item.vsh === inputShaderFile ? item.fsh : item.vsh;
+                            jsonInfo.data = [item];
+                            indexContent = JSON.stringify(jsonInfo);
+                            this.inputJsonFile = path.join(subDir, fileName);
+                            break;
+                        }
+                    }
+
+                    if (indexContent) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return indexContent ? indexContent : this.getJsonContentOfInputShader(path.dirname(subDir));
+    }
+
     async createZipFile() {
         const zipfile = path.join(this.tmpDir, "starlight_input.zip");
         console.info(`Starlight collected zipfile : ${zipfile}`);
@@ -144,7 +202,30 @@ export class StarLight extends events.EventEmitter {
         const closeEvent = events.once(output, 'close');
 
         archiveFile.pipe(output);
-        archiveFile.glob(globPattern, { cwd: this.inputDir, nocase: true });
+
+        if (this.inputShaderFile || this.inputJsonFile) {
+            if (this.inputShaderFile) {
+                const jsonContent = this.getJsonContentOfInputShader();
+                console.log(`Generated json content: ${jsonContent}`);
+                archiveFile.append(jsonContent as string, { name: 'index.sl.json' });
+            }
+
+            if (this.inputJsonFile) {
+                if (!this.inputShaderFile) {
+                    archiveFile.file(this.inputJsonFile as string, { name: 'index.sl.json' });
+                }
+            }
+
+            this.inputDir = path.dirname(this.inputJsonFile as string);
+            if (this.inputShaderFile) {
+                archiveFile.file(this.inputShaderFile, { name: path.basename(this.inputShaderFile) });
+                archiveFile.glob(`**/${this.refShaderFile}`, { cwd: this.inputDir, nocase: true });
+            } else {
+                archiveFile.glob("**/*.+(vert|frag|glsl)", { cwd: this.inputDir, nocase: true });
+            }
+        } else {
+            archiveFile.glob(globPattern, { cwd: this.inputDir, nocase: true });
+        }
 
         await this.awaitOrCancel(archiveFile.finalize());
         await this.awaitOrCancel(closeEvent);
@@ -154,7 +235,7 @@ export class StarLight extends events.EventEmitter {
         return zipfile;
     }
 
-    async submitAndDownload(type: string, updateZipFile: string) {
+    async submitAndDownload(updateZipFile: string) {
         const outputZipFile = path.join(this.tmpDir, "slOutput.zip");
 
         this.updateProgress(0, 'sending request to server...');
@@ -162,7 +243,7 @@ export class StarLight extends events.EventEmitter {
         const output = fs.createWriteStream(outputZipFile);
         const form = new FormData();
 
-        form.append('type', type);
+        form.append('type', this.type);
         form.append('zipfile', fs.createReadStream(updateZipFile));
         // form.append('debug', 1);
         const api_url = <string>vscode.workspace.getConfiguration("starlight-generator").get<string>("api_url");
@@ -194,19 +275,6 @@ export class StarLight extends events.EventEmitter {
     }
 
     async extractResult(zipFile: string) {
-        // 目前输入输出文件夹总是同一个
-        // if (fs.pathExistsSync(outputDir)) {
-        //     if (this.cleanupOutputFolder) {
-        //         fs.emptyDirSync(outputDir);
-        //     }
-        // } else {
-        //     fs.mkdirSync(outputDir);
-        // }
-
-        // if (!this.forceOverrideOutputFiles && outputDir === this.inputFolder) {
-        //     throw new Error(`The files at ${outputDir} will be overwritten!`);
-        // }
-
         this.updateProgress(0, "extracting received zip archive...");
 
         await this.awaitOrCancel(extractZip(zipFile, { dir: this.inputDir }));

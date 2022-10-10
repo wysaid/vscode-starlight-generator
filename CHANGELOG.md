@@ -4,7 +4,14 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.5.0
+
+- Support single file generate when focused on `*.spv.vert` or `*.spv.frag` files.
+  1. The plugin will try to find the `*.sl.json` file for all parent folders recursively.
+  2. Once any config with the focused file is found, the searching stopped and the config is used.
+
 ## 0.4.1
+
 - Change pre-release to release
 
 ## 0.3.7

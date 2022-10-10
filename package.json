@@ -2,7 +2,7 @@
 	"name": "starlight-generator",
 	"displayName": "StarLight-Generator",
 	"description": "An auto generator for https://starlight.yyyyy.tech",
-	"version": "0.4.1",
+	"version": "0.5.0",
 	"icon": "images/logo.png",
 	"publisher": "wysaid",
 	"repository": {
