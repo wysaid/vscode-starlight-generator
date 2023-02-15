@@ -84,6 +84,12 @@
 				}
 			}
 		},
+		"jsonValidation": [
+			{
+				"fileMatch": "*.sl.json",
+				"url": "https://starlight.yyyyy.tech/slconfigschema.json"
+			}
+		],
 		"keybindings": [
 			{
 				"command": "starlight-generator.generate",
