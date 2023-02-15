@@ -26,20 +26,14 @@ You can define some options like below:
 
 ## Key Bindings
 
-Only support `lua` and `cpp`.
-
 ```jsonc
 {
     "key" : "ctrl+cmd+alt+l",
-    "command" : "starlight-generator.lua"
-},
-{
-    "key" : "ctrl+cmd+alt+c",
-    "command" : "starlight-generator.cpp"
+    "command" : "starlight-generator.generate"
 }
 ```
 
-Press "ctlr+cmd+alt+l" to trigger Starlight-Generator with currently active file/folder.
+Press <kbd>ctlr+cmd+alt+l</kbd> to trigger Starlight-Generator with currently active file/folder.
 
 ## Context Menu
 

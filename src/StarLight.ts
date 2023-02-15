@@ -8,10 +8,9 @@ import * as globCallback from 'glob';
 import * as vscode from 'vscode';
 import { promisify } from "util";
 import * as events from "events";
-import { execFile as execFileCallback } from 'child_process';
+import { execFile } from 'child_process';
 
 const glob = promisify(globCallback);
-const execFile = promisify(execFileCallback);
 
 const TIMEOUT = 10000;
 
@@ -26,14 +25,14 @@ export class StarLight extends events.EventEmitter {
     updateProgress: (inc: number, msg?: string) => void;
     cancelEvent: Promise<void>;
     isCanceled = false;
-    type: "lua" | "cpp";
+    diagnosticCollection: vscode.DiagnosticCollection;
 
-    constructor(options: { runDir: string, updateProgressCallback: (inc: number, msg?: string) => void }) {
+    constructor(options: { runDir: string, diagnosticCollection: vscode.DiagnosticCollection, updateProgressCallback: (inc: number, msg?: string) => void }) {
         super();
         const inputDir = options.runDir;
         const inputDirStat = fs.statSync(inputDir);
         this.inputDir = inputDir;
-        this.type = "cpp";
+        this.diagnosticCollection = options.diagnosticCollection;
         if (inputDirStat.isFile()) {
 
             /// only `*.spv.vert`、 `*.spv.frag` and `*.spv.glsl`.
@@ -79,11 +78,12 @@ export class StarLight extends events.EventEmitter {
             this.emit('cancel');
     }
 
-    async performStarLight(type: "lua" | "cpp") {
+    async performStarLight() {
         await this.awaitOrCancel(this.checkInputDir());
 
+        this.diagnosticCollection.clear()
+
         const localBin = vscode.workspace.getConfiguration("starlight-generator").get<string>("binary_path");
-        this.type = type;
         if (localBin) {
             await this.performLocal(localBin);
         } else {
@@ -105,18 +105,24 @@ export class StarLight extends events.EventEmitter {
         for (const indexFile of indexFiles) {
             const commandArgs = [
                 '--batch-template', indexFile,
-                '--output-to-json-file-path',
-                '--template-language', this.type,
+                '--output-to-json-file-path'
             ].concat(subdirArgs);
             const ac = new AbortController();
-            const { stdout, stderr } = await this.awaitOrCancel(execFile(localBin, commandArgs, {
-                cwd: this.inputDir,
-                timeout: TIMEOUT,
-                windowsHide: true,
-                signal: ac.signal,
+            let stdout: string, stderr: string
+            await this.awaitOrCancel(new Promise((resolve, reject) => {
+                execFile(localBin, commandArgs, {
+                    cwd: this.inputDir,
+                    timeout: TIMEOUT,
+                    windowsHide: true,
+                    signal: ac.signal,
+                }, (error, stdout1, stderr1) => {
+                    stdout = stdout1;
+                    stderr = stderr1;
+                    resolve(undefined);
+                })
             }), () => ac.abort("time out"));
-            console.info(stdout);
-            console.error(stderr);
+            console.info(stdout!);
+            this.parseStarLightOutput(stderr!);
         }
     }
 
@@ -203,26 +209,17 @@ export class StarLight extends events.EventEmitter {
 
         archiveFile.pipe(output);
 
-        if (this.inputShaderFile || this.inputJsonFile) {
-            if (this.inputShaderFile) {
-                const jsonContent = this.getJsonContentOfInputShader();
-                console.log(`Generated json content: ${jsonContent}`);
-                archiveFile.append(jsonContent as string, { name: 'index.sl.json' });
-            }
-
-            if (this.inputJsonFile) {
-                if (!this.inputShaderFile) {
-                    archiveFile.file(this.inputJsonFile as string, { name: 'index.sl.json' });
-                }
-            }
-
-            this.inputDir = path.dirname(this.inputJsonFile as string);
-            if (this.inputShaderFile) {
-                archiveFile.file(this.inputShaderFile, { name: path.basename(this.inputShaderFile) });
-                archiveFile.glob(`**/${this.refShaderFile}`, { cwd: this.inputDir, nocase: true });
-            } else {
-                archiveFile.glob("**/*.+(vert|frag|glsl)", { cwd: this.inputDir, nocase: true });
-            }
+        if (this.inputShaderFile) {
+            const jsonContent = this.getJsonContentOfInputShader();
+            console.log(`Generated json content: ${jsonContent}`);
+            archiveFile.append(jsonContent as string, { name: 'index.sl.json' });
+            this.inputDir = path.dirname(this.inputShaderFile);
+            archiveFile.file(this.inputShaderFile, { name: path.basename(this.inputShaderFile) });
+            archiveFile.glob(`**/${this.refShaderFile}`, { cwd: this.inputDir, nocase: true });
+        } else if (this.inputJsonFile) {
+            archiveFile.file(this.inputJsonFile, { name: path.basename(this.inputJsonFile) });
+            this.inputDir = path.dirname(this.inputJsonFile);
+            archiveFile.glob("**/*.+(vert|frag|glsl)", { cwd: this.inputDir, nocase: true });
         } else {
             archiveFile.glob(globPattern, { cwd: this.inputDir, nocase: true });
         }
@@ -235,6 +232,14 @@ export class StarLight extends events.EventEmitter {
         return zipfile;
     }
 
+    hasOutputFormat(): boolean {
+        if (this.inputJsonFile) {
+            const config = JSON.parse((fs.readFileSync(this.inputJsonFile)).toLocaleString());
+            return !!config.outputFormat;
+        }
+        return false;
+    }
+
     async submitAndDownload(updateZipFile: string) {
         const outputZipFile = path.join(this.tmpDir, "slOutput.zip");
 
@@ -243,7 +248,10 @@ export class StarLight extends events.EventEmitter {
         const output = fs.createWriteStream(outputZipFile);
         const form = new FormData();
 
-        form.append('type', this.type);
+        // 默认输出 lua
+        if (!this.hasOutputFormat()) {
+            form.append('type', "lua");
+        }
         form.append('zipfile', fs.createReadStream(updateZipFile));
         // form.append('debug', 1);
         const api_url = <string>vscode.workspace.getConfiguration("starlight-generator").get<string>("api_url");
@@ -283,14 +291,127 @@ export class StarLight extends events.EventEmitter {
         const logFile = path.join(this.inputDir, '.starlight.log');
         if ((await this.awaitOrCancel(fs.stat(logFile))).isFile()) {
             const logContent = await this.awaitOrCancel(fs.readFile(logFile, { encoding: "utf-8" }));
+            this.parseRemoteDiagnosticMessages(logContent);
+            await this.awaitOrCancel(fs.rm(logFile));
             if (logContent.search(/\[ERROR\]/i) != -1) {
-                throw Error(`Error occured during generation, please check ${logFile}`)
-            } else if (logContent.search(/\[WARNING\]|\[INFO\]/i) == -1) {
-                await this.awaitOrCancel(fs.rm(logFile));
+                throw Error(`Error occured during generation`);
             }
         }
 
         this.updateProgress(25, "starligt generate done");
+    }
+
+    parseRemoteDiagnosticMessages(logContent: string) {
+        const matches = logContent.match(/@@@ STARLIGHT OUTPUT BEGIN\n(.*)@@@ STARLIGHT OUTPUT END/s);
+        if (!matches)
+            return;
+        this.parseStarLightOutput(matches[1]);
+    }
+
+    parseStarLightOutput(slOutput: string) {
+        console.log(`StarLight output: ${slOutput}`)
+        let reSingleInfo = /(?<=\n|^)\[(ERROR|WARNING)\](.*?)(?=\n\[(ERROR|WARNING|INFO|DEBUG|VERBOSE)\]|$)/sig;
+        let infos = []
+        let singleInfoMatch
+        while (singleInfoMatch = reSingleInfo.exec(slOutput)) {
+            const ty = singleInfoMatch[1].toUpperCase();
+            const info = this.parseSingleDiagnosticMessage(singleInfoMatch[2].trim());
+            infos.push({ type: ty, ...info });
+        }
+
+        let entries: [vscode.Uri, vscode.Diagnostic[]][] = []
+        for (const info of infos) {
+            let severity
+            if (info.type === 'ERROR') {
+                severity = vscode.DiagnosticSeverity.Error;
+            } else if (info.type === 'WARNING') {
+                severity = vscode.DiagnosticSeverity.Warning;
+            } else {
+                continue;
+            }
+
+            let uri
+            if (info.source) {
+                uri = vscode.Uri.file(path.join(this.inputDir, info.source));
+            } else {
+                uri = vscode.Uri.file(this.inputJsonFile ?? "");
+            }
+
+            let range
+            if (info.line) {
+                if (info.column) {
+                    // 前后各扩展一位
+                    range = new vscode.Range(info.line! - 1, info.column! - 2, info.line! - 1, info.column!);
+                } else {
+                    range = new vscode.Range(info.line! - 1, 0, info.line! - 1, 0);
+                }
+            } else {
+                range = new vscode.Range(0, 0, 0, 0);
+            }
+
+            const [message, relatedInformation] = this.parseRelatedInformations(info.message, uri);
+
+            entries.push([uri, [{
+                message,
+                range,
+                severity,
+                source: 'StarLight',
+                relatedInformation,
+            }]])
+        }
+        this.diagnosticCollection.set(entries);
+    }
+
+    parseSingleDiagnosticMessage(message: string) {
+        let info: {
+            source?: string,
+            line?: number,
+            column?: number,
+            message: string,
+        } = { message }
+        const reSingleMessage = /([^:*?"<>|]+):((\d+):)?((\d+):)?(.*)/s;
+        let m
+        if (m = message.match(reSingleMessage)) {
+            const src = m[1];
+            if (fs.existsSync(path.join(this.inputDir, src)) || fs.existsSync(src)) {
+                info.source = src;
+                info.line = m[3] ? parseInt(m[3]) : undefined;
+                info.column = m[5] ? parseInt(m[5]) : undefined;
+                info.message = m[6].trim();
+            }
+        }
+        return info;
+    }
+
+    parseRelatedInformations(message: string, defaultUri: vscode.Uri): [string, vscode.DiagnosticRelatedInformation[]] {
+        let mainMessage = message;
+        let relatedInformations: vscode.DiagnosticRelatedInformation[] = []
+        if (message.startsWith("glslang:")) {
+            mainMessage = /^glslang:([^:]*)/.exec(message)![1];
+            let reGlslangMessage = /(ERROR|WARNING):(.*?)(?=\n[A-Z]+:|$)/sgi;
+            const reSourceInfo = /([^:*?"<>|]+):(\d+):(.*)/s;
+            let singleMatch
+            while (singleMatch = reGlslangMessage.exec(message)) {
+                const singleMessage = singleMatch[2]!.trim();
+                let srcInfoMatch
+                if (srcInfoMatch = reSourceInfo.exec(singleMessage)) {
+                    const srcName = srcInfoMatch[1];
+                    const line = parseInt(srcInfoMatch[2]);
+                    const subMessage = srcInfoMatch[3].trim();
+                    const range = new vscode.Range(line - 1, 0, line - 1, 0);
+                    relatedInformations.push({
+                        location: new vscode.Location(vscode.Uri.file(path.join(this.inputDir, srcName)), range),
+                        message: subMessage,
+                    });
+                } else {
+                    relatedInformations.push({
+                        location: new vscode.Location(defaultUri, new vscode.Range(0, 0, 0, 0)),
+                        message: singleMessage,
+                    });
+                }
+            }
+        }
+        return [mainMessage, relatedInformations];
     }
 }
 

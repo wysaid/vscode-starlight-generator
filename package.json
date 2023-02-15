@@ -22,40 +22,25 @@
 		"kuaishou",
 		"kwai"
 	],
-	"activationEvents": [
-		"onCommand:starlight-generator.lua",
-		"onCommand:starlight-generator.cpp",
-		"onCommand:starlight-generator.createShaderTemplate",
-		"onCommand:starlight-generator.encode",
-		"onCommand:starlight-generator.decode",
-		"onCommand:starlight-generator.effectHelper"
-	],
+	"activationEvents": [],
 	"main": "dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "starlight-generator.lua",
-				"title": "1. Run StarLight-Generator lua with current file/directory"
-			},
-			{
-				"command": "starlight-generator.cpp",
-				"title": "2. Run StarLight-Generator cpp with current file/directory"
+				"command": "starlight-generator.generate",
+				"title": "StarLight: Run StarLight-Generator with current file/directory"
 			},
 			{
 				"command": "starlight-generator.createShaderTemplate",
-				"title": "3. Create StarLight shader template in current directory"
+				"title": "StarLight: Create StarLight shader template in current directory"
 			},
 			{
 				"command": "starlight-generator.encode",
-				"title": "4. StarLight: encode current file/directory"
+				"title": "StarLight: encode current file/directory"
 			},
 			{
 				"command": "starlight-generator.decode",
-				"title": "5. StarLight: decode current file/directory"
-			},
-			{
-				"command": "starlight-generator.effectHelper",
-				"title": "6. StarLight: Effect Helper Options"
+				"title": "StarLight: decode current file/directory"
 			}
 		],
 		"configuration": {
@@ -101,54 +86,39 @@
 		},
 		"keybindings": [
 			{
-				"command": "starlight-generator.lua",
+				"command": "starlight-generator.generate",
 				"key": "ctrl+cmd+alt+l",
 				"mac": "ctrl+cmd+alt+l"
-			},
-			{
-				"command": "starlight-generator.cpp",
-				"key": "ctrl+cmd+alt+c",
-				"mac": "ctrl+cmd+alt+c"
 			}
 		],
 		"menus": {
 			"editor/context": [
 				{
-					"command": "starlight-generator.lua",
+					"command": "starlight-generator.generate",
 					"when": "!inOutput && config.starlight-generator.showEditorContextMenu",
-					"group": "1_modification"
-				},
-				{
-					"command": "starlight-generator.cpp",
-					"when": "!inOutput && config.starlight-generator.showEditorContextMenu",
-					"group": "1_modification"
+					"group": "z_commands"
 				}
 			],
 			"explorer/context": [
 				{
-					"command": "starlight-generator.lua",
+					"command": "starlight-generator.generate",
 					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "1_modification"
-				},
-				{
-					"command": "starlight-generator.cpp",
-					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "1_modification"
+					"group": "2_workspace@1"
 				},
 				{
 					"command": "starlight-generator.createShaderTemplate",
 					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "1_modification"
+					"group": "2_workspace@2"
 				},
 				{
 					"command": "starlight-generator.encode",
 					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "1_modification"
+					"group": "2_workspace@3"
 				},
 				{
 					"command": "starlight-generator.decode",
 					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "1_modification"
+					"group": "2_workspace@4"
 				}
 			]
 		}

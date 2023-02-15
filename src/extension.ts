@@ -6,18 +6,20 @@ import { StarLight } from './StarLight';
 import { ShaderTemplateCreator } from './ShaderTemplateCreator';
 import * as FMCoder from './coder';
 
+let diagnosticCollection: vscode.DiagnosticCollection
+
 function activate(context: vscode.ExtensionContext) {
     console.log('starlight-generator is now active');
 
-    context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.lua', routeCall.bind(null, "lua")));
-    context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.cpp', routeCall.bind(null, "cpp")));
+    context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.generate', routeCall.bind(null, "generate")));
     context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.createShaderTemplate', routeCall.bind(null, "createShaderTemplate")));
     context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.encode', routeCall.bind(null, "encode")));
     context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.decode', routeCall.bind(null, "decode")));
+
+    diagnosticCollection = vscode.languages.createDiagnosticCollection('StarLight');
 }
 
-type SlShaderConvertType = "lua" | "cpp";
-type SlCommandType = SlShaderConvertType | "createShaderTemplate" | "encode" | "decode"
+type SlCommandType = "generate" | "createShaderTemplate" | "encode" | "decode"
 
 function routeCall(type: SlCommandType, runPath = vscode.window.activeTextEditor?.document?.uri) {
     console.log(`run routeCall("${type}", "${runPath}")`);
@@ -30,8 +32,8 @@ function routeCall(type: SlCommandType, runPath = vscode.window.activeTextEditor
     if (!(runPath instanceof vscode.Uri))
         throw Error(`runPath (${runPath}) is a ${typeof runPath}`)
 
-    if (type == "lua" || type == "cpp") {
-        performStarLight(type, runPath);
+    if (type == "generate") {
+        performStarLight(runPath);
     } else if (type == "createShaderTemplate") {
         (new ShaderTemplateCreator(runPath.fsPath)).create();
     } else if (type == "encode") {
@@ -49,7 +51,7 @@ function decodeFile(runPath: vscode.Uri) {
     (new FMCoder.Coder(runPath.fsPath)).decode()
 }
 
-function performStarLight(type: SlShaderConvertType, runPath: vscode.Uri) {
+function performStarLight(runPath: vscode.Uri) {
     // TODO: perform on single file
     let runDir = runPath.fsPath;
 
@@ -61,10 +63,11 @@ function performStarLight(type: SlShaderConvertType, runPath: vscode.Uri) {
         const sl = new StarLight({
             runDir,
             updateProgressCallback: (inc, msg) => progress.report({ message: msg, increment: inc }),
+            diagnosticCollection,
         });
         token.onCancellationRequested(() => sl.cancel());
         try {
-            await sl.performStarLight(type);
+            await sl.performStarLight();
         }
         catch (err: any) {
             let errmsg: string;
