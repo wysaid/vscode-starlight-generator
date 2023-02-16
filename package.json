@@ -82,19 +82,19 @@
 				{
 					"command": "starlight-generator.generate",
 					"when": "!inOutput && config.starlight-generator.showEditorContextMenu",
-					"group": "z_commands"
+					"group": "2_starlight"
 				}
 			],
 			"explorer/context": [
 				{
 					"command": "starlight-generator.generate",
 					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "2_workspace@1"
+					"group": "2_starlight@1"
 				},
 				{
 					"command": "starlight-generator.createShaderTemplate",
 					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "2_workspace@2"
+					"group": "2_starlight@2"
 				}
 			]
 		}
