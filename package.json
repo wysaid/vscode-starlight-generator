@@ -2,7 +2,7 @@
 	"name": "starlight-generator",
 	"displayName": "StarLight-Generator",
 	"description": "An auto generator for https://starlight.yyyyy.tech",
-	"version": "0.5.0",
+	"version": "0.6.0",
 	"icon": "images/logo.png",
 	"publisher": "wysaid",
 	"repository": {
@@ -22,40 +22,17 @@
 		"kuaishou",
 		"kwai"
 	],
-	"activationEvents": [
-		"onCommand:starlight-generator.lua",
-		"onCommand:starlight-generator.cpp",
-		"onCommand:starlight-generator.createShaderTemplate",
-		"onCommand:starlight-generator.encode",
-		"onCommand:starlight-generator.decode",
-		"onCommand:starlight-generator.effectHelper"
-	],
+	"activationEvents": [],
 	"main": "dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "starlight-generator.lua",
-				"title": "1. Run StarLight-Generator lua with current file/directory"
-			},
-			{
-				"command": "starlight-generator.cpp",
-				"title": "2. Run StarLight-Generator cpp with current file/directory"
+				"command": "starlight-generator.generate",
+				"title": "StarLight: Run StarLight-Generator with current file/directory"
 			},
 			{
 				"command": "starlight-generator.createShaderTemplate",
-				"title": "3. Create StarLight shader template in current directory"
-			},
-			{
-				"command": "starlight-generator.encode",
-				"title": "4. StarLight: encode current file/directory"
-			},
-			{
-				"command": "starlight-generator.decode",
-				"title": "5. StarLight: decode current file/directory"
-			},
-			{
-				"command": "starlight-generator.effectHelper",
-				"title": "6. StarLight: Effect Helper Options"
+				"title": "StarLight: Create StarLight shader template in current directory"
 			}
 		],
 		"configuration": {
@@ -73,18 +50,6 @@
 					"description": "An url to starlight service (default: https://starlight.yyyyy.tech)",
 					"scope": "resource"
 				},
-				"starlight-generator.decodedFileSuffix": {
-					"type": "string",
-					"default": "txt",
-					"description": "The suffix which decoded file has",
-					"scope": "resource"
-				},
-				"starlight-generator.encodingURL": {
-					"type": "string",
-					"default": "https://yyyyy.tech/faceDetect/encode.php",
-					"description": "The encoding url",
-					"scope": "resource"
-				},
 				"starlight-generator.showEditorContextMenu": {
 					"type": "boolean",
 					"default": true,
@@ -99,56 +64,37 @@
 				}
 			}
 		},
+		"jsonValidation": [
+			{
+				"fileMatch": "*.sl.json",
+				"url": "https://starlight.yyyyy.tech/slconfigschema.json"
+			}
+		],
 		"keybindings": [
 			{
-				"command": "starlight-generator.lua",
+				"command": "starlight-generator.generate",
 				"key": "ctrl+cmd+alt+l",
 				"mac": "ctrl+cmd+alt+l"
-			},
-			{
-				"command": "starlight-generator.cpp",
-				"key": "ctrl+cmd+alt+c",
-				"mac": "ctrl+cmd+alt+c"
 			}
 		],
 		"menus": {
 			"editor/context": [
 				{
-					"command": "starlight-generator.lua",
+					"command": "starlight-generator.generate",
 					"when": "!inOutput && config.starlight-generator.showEditorContextMenu",
-					"group": "1_modification"
-				},
-				{
-					"command": "starlight-generator.cpp",
-					"when": "!inOutput && config.starlight-generator.showEditorContextMenu",
-					"group": "1_modification"
+					"group": "z_commands"
 				}
 			],
 			"explorer/context": [
 				{
-					"command": "starlight-generator.lua",
+					"command": "starlight-generator.generate",
 					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "1_modification"
-				},
-				{
-					"command": "starlight-generator.cpp",
-					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "1_modification"
+					"group": "2_workspace@1"
 				},
 				{
 					"command": "starlight-generator.createShaderTemplate",
 					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "1_modification"
-				},
-				{
-					"command": "starlight-generator.encode",
-					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "1_modification"
-				},
-				{
-					"command": "starlight-generator.decode",
-					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "1_modification"
+					"group": "2_workspace@2"
 				}
 			]
 		}
@@ -187,9 +133,7 @@
 		"archiver": "^5.3.0",
 		"extract-zip": "^2.0.1",
 		"form-data": "^4.0.0",
-		"formstream": "^1.1.1",
 		"fs-extra": "^10.0.0",
-		"glob": "^7.2.0",
-		"urllib": "^2.38.0"
+		"glob": "^7.2.0"
 	}
 }
