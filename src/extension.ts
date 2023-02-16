@@ -4,22 +4,19 @@ import vscode = require('vscode');
 
 import { StarLight } from './StarLight';
 import { ShaderTemplateCreator } from './ShaderTemplateCreator';
-import * as FMCoder from './coder';
 
 let diagnosticCollection: vscode.DiagnosticCollection
 
-function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
     console.log('starlight-generator is now active');
 
     context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.generate', routeCall.bind(null, "generate")));
     context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.createShaderTemplate', routeCall.bind(null, "createShaderTemplate")));
-    context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.encode', routeCall.bind(null, "encode")));
-    context.subscriptions.push(vscode.commands.registerCommand('starlight-generator.decode', routeCall.bind(null, "decode")));
 
     diagnosticCollection = vscode.languages.createDiagnosticCollection('StarLight');
 }
 
-type SlCommandType = "generate" | "createShaderTemplate" | "encode" | "decode"
+type SlCommandType = "generate" | "createShaderTemplate";
 
 function routeCall(type: SlCommandType, runPath = vscode.window.activeTextEditor?.document?.uri) {
     console.log(`run routeCall("${type}", "${runPath}")`);
@@ -36,19 +33,7 @@ function routeCall(type: SlCommandType, runPath = vscode.window.activeTextEditor
         performStarLight(runPath);
     } else if (type == "createShaderTemplate") {
         (new ShaderTemplateCreator(runPath.fsPath)).create();
-    } else if (type == "encode") {
-        encodeFile(runPath)
-    } else if (type == "decode") {
-        decodeFile(runPath)
     }
-}
-
-function encodeFile(runPath: vscode.Uri) {
-    (new FMCoder.Coder(runPath.fsPath)).encode();
-}
-
-function decodeFile(runPath: vscode.Uri) {
-    (new FMCoder.Coder(runPath.fsPath)).decode()
 }
 
 function performStarLight(runPath: vscode.Uri) {
@@ -81,11 +66,6 @@ function performStarLight(runPath: vscode.Uri) {
 }
 
 // this method is called when your extension is deactivated
-function deactivate() {
+export function deactivate() {
     /// cleanup
-}
-
-module.exports = {
-    activate,
-    deactivate
 }

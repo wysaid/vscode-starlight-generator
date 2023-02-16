@@ -33,14 +33,6 @@
 			{
 				"command": "starlight-generator.createShaderTemplate",
 				"title": "StarLight: Create StarLight shader template in current directory"
-			},
-			{
-				"command": "starlight-generator.encode",
-				"title": "StarLight: encode current file/directory"
-			},
-			{
-				"command": "starlight-generator.decode",
-				"title": "StarLight: decode current file/directory"
 			}
 		],
 		"configuration": {
@@ -56,18 +48,6 @@
 					"type": "string",
 					"default": "https://starlight.yyyyy.tech",
 					"description": "An url to starlight service (default: https://starlight.yyyyy.tech)",
-					"scope": "resource"
-				},
-				"starlight-generator.decodedFileSuffix": {
-					"type": "string",
-					"default": "txt",
-					"description": "The suffix which decoded file has",
-					"scope": "resource"
-				},
-				"starlight-generator.encodingURL": {
-					"type": "string",
-					"default": "https://yyyyy.tech/faceDetect/encode.php",
-					"description": "The encoding url",
 					"scope": "resource"
 				},
 				"starlight-generator.showEditorContextMenu": {
@@ -115,16 +95,6 @@
 					"command": "starlight-generator.createShaderTemplate",
 					"when": "config.starlight-generator.explorerContextMenu",
 					"group": "2_workspace@2"
-				},
-				{
-					"command": "starlight-generator.encode",
-					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "2_workspace@3"
-				},
-				{
-					"command": "starlight-generator.decode",
-					"when": "config.starlight-generator.explorerContextMenu",
-					"group": "2_workspace@4"
 				}
 			]
 		}
@@ -163,9 +133,7 @@
 		"archiver": "^5.3.0",
 		"extract-zip": "^2.0.1",
 		"form-data": "^4.0.0",
-		"formstream": "^1.1.1",
 		"fs-extra": "^10.0.0",
-		"glob": "^7.2.0",
-		"urllib": "^2.38.0"
+		"glob": "^7.2.0"
 	}
 }
