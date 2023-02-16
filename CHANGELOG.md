@@ -4,6 +4,13 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.6.0
+
+- 支持在问题窗口显示错误.
+- 统一用 `outputFormat` 字段来决定输出格式.
+- 增加生成配置文件(`*.sl.json`)的代码提示.
+- 移除素材加密解密功能, 需要相关功能请使用 [Magicka 插件](https://marketplace.visualstudio.com/items?itemName=kwai.magicka).
+
 ## 0.5.0
 
 - Support single file generate when focused on `*.spv.vert` or `*.spv.frag` files.
