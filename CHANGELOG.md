@@ -4,6 +4,10 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.6.2
+
+- 生成出错时自动弹出问题窗口
+
 ## 0.6.1
 
 - 加回触发事件, 兼容 1.74 以下的 VSCode
