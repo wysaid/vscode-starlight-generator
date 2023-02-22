@@ -360,6 +360,9 @@ export class StarLight extends events.EventEmitter {
             }]])
         }
         this.diagnosticCollection.set(entries);
+        if (infos.length > 0) {
+            vscode.commands.executeCommand("workbench.action.problems.focus");
+        }
     }
 
     parseSingleDiagnosticMessage(message: string) {
