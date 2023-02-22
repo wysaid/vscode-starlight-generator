@@ -22,7 +22,10 @@
 		"kuaishou",
 		"kwai"
 	],
-	"activationEvents": [],
+	"activationEvents": [
+		"onCommand:starlight-generator.generate",
+		"onCommand:starlight-generator.createShaderTemplate"
+	],
 	"main": "dist/extension.js",
 	"contributes": {
 		"commands": [
