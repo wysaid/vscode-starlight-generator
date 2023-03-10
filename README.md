@@ -57,7 +57,7 @@ Just right clicking on the file explorer or the currently opened file in the edi
 | frag_class_name | string    | the output vertex shader class name                    |
 | namespace       | string    | the output namespace                                   |
 | stage           | string    | output stages, must be one of `vert`, `frag` or `both` |
-| type            | string    | output form, must be one of `lua` or `cpp`             |
+| type            | string    | output form, must be one of `lua`, `js` or `cpp`             |
 | debug           | string    | debug mode. this will get the log of request actions.  |
 
 ### Batch Request

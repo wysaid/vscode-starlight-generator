@@ -248,9 +248,29 @@ export class StarLight extends events.EventEmitter {
         const output = fs.createWriteStream(outputZipFile);
         const form = new FormData();
 
-        // 默认输出 lua
+        // 没找到适合的字段, 让用户自己选择一下.
         if (!this.hasOutputFormat()) {
-            form.append('type', "lua");
+            const options: vscode.QuickPickItem[] = [
+                {
+                    label: 'lua',
+                    description: '按lua模式生成'
+                },
+                {
+                    label: 'js',
+                    description: '按js模式生成'
+                },
+                {
+                    label: 'cpp',
+                    description: '按cpp模式生成'
+                }
+            ];
+
+            const selected = await vscode.window.showQuickPick(options);
+            if (selected && selected.label.length !== 0) {
+                form.append('type', selected.label);
+            } else {
+                form.append('type', 'lua'); /// 取消也给一个 lua. 
+            }
         }
         form.append('zipfile', fs.createReadStream(updateZipFile));
         // form.append('debug', 1);
