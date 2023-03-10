@@ -269,7 +269,7 @@ export class StarLight extends events.EventEmitter {
             if (selected && selected.label.length !== 0) {
                 form.append('type', selected.label);
             } else {
-                form.append('type', 'lua'); /// 取消也给一个 lua. 
+                throw Error("StarLight generate cancled");
             }
         }
         form.append('zipfile', fs.createReadStream(updateZipFile));
