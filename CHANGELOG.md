@@ -4,6 +4,10 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.6.3
+
+- 优化用户体验, 在 `outputFormat` 不存在的情况下, 弹窗用户选择.
+
 ## 0.6.2
 
 - 生成出错时自动弹出问题窗口
