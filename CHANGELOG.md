@@ -4,6 +4,10 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.6.5
+
+- outputFormat 支持选择 `typescript`.
+
 ## 0.6.3
 
 - 优化用户体验, 在 `outputFormat` 不存在的情况下, 弹窗用户选择.

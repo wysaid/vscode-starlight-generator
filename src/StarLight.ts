@@ -252,16 +252,16 @@ export class StarLight extends events.EventEmitter {
         if (!this.hasOutputFormat()) {
             const options: vscode.QuickPickItem[] = [
                 {
-                    label: 'lua',
-                    description: '按lua模式生成'
+                    label: 'ts',
+                    description: '按 typescript 模式生成'
                 },
                 {
-                    label: 'js',
-                    description: '按js模式生成'
+                    label: 'lua',
+                    description: '按 lua 模式生成'
                 },
                 {
                     label: 'cpp',
-                    description: '按cpp模式生成'
+                    description: '按 cpp 模式生成'
                 }
             ];
 
