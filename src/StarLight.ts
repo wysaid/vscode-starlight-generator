@@ -193,6 +193,47 @@ export class StarLight extends events.EventEmitter {
         return indexContent ? indexContent : this.getJsonContentOfInputShader(path.dirname(subDir));
     }
 
+    async appendArchiveFileByConfig(archiveFile: archiver.Archiver, jsonConfigPath: string): Promise<boolean> {
+        const jsonConfig = JSON.parse(fs.readFileSync(jsonConfigPath).toString());
+
+        const { data: configs } = jsonConfig;
+
+        if (!(configs instanceof Array))
+            throw Error("Invalid json config file!");
+
+        let hasParentPath = false;
+        for (const config of configs) {
+            const { vsh, fsh } = config;
+            if (!(typeof vsh === 'string' && typeof fsh === 'string'))
+                throw Error("Invalid json config file!");
+            if (path.normalize(vsh).startsWith("..")) {
+                hasParentPath = true;
+                const vshContent = await fs.promises.readFile(path.resolve(this.inputDir, vsh));
+                const newName = path.basename(vsh);
+                config.vsh = newName;
+                archiveFile.append(vshContent, { name: newName });
+            }
+
+            if (path.normalize(fsh).startsWith("..")) {
+                hasParentPath = true;
+                const fshContent = await fs.promises.readFile(path.resolve(this.inputDir, fsh));
+                const newName = path.basename(fsh);
+                config.fsh = newName;
+                archiveFile.append(fshContent, { name: newName });
+            }
+        }
+
+        if (hasParentPath) {
+            const jsonContent = JSON.stringify(jsonConfig);
+            archiveFile.append(jsonContent, { name: path.basename(jsonConfigPath) });
+        } else {
+            archiveFile.file(jsonConfigPath, { name: path.basename(jsonConfigPath) });
+        }
+        archiveFile.glob("**/*.+(vert|frag|glsl)", { cwd: this.inputDir, nocase: true });
+
+        return hasParentPath;
+    }
+
     async createZipFile() {
         const zipfile = path.join(this.tmpDir, "starlight_input.zip");
         console.info(`Starlight collected zipfile : ${zipfile}`);
@@ -217,9 +258,8 @@ export class StarLight extends events.EventEmitter {
             archiveFile.file(this.inputShaderFile, { name: path.basename(this.inputShaderFile) });
             archiveFile.glob(`**/${this.refShaderFile}`, { cwd: this.inputDir, nocase: true });
         } else if (this.inputJsonFile) {
-            archiveFile.file(this.inputJsonFile, { name: path.basename(this.inputJsonFile) });
             this.inputDir = path.dirname(this.inputJsonFile);
-            archiveFile.glob("**/*.+(vert|frag|glsl)", { cwd: this.inputDir, nocase: true });
+            await this.appendArchiveFileByConfig(archiveFile, this.inputJsonFile);
         } else {
             archiveFile.glob(globPattern, { cwd: this.inputDir, nocase: true });
         }
