@@ -2,7 +2,7 @@
 precision highp float;
 precision highp int;
 
-layout(location = 2) float intensity;
+layout(location = 2) uniform float intensity;
 
 layout(binding = 0) uniform sampler2D textureInput;
 layout(binding = 1) uniform sampler2D textureMix;

@@ -4,6 +4,10 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.6.6
+
+- 修复模板shader的语法错误
+
 ## 0.6.5
 
 - outputFormat 支持选择 `typescript`.
