@@ -4,6 +4,10 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.6.8
+
+- shader 生成指令默认生成 `ts` 版本, 而不是 `lua` 版本
+
 ## 0.6.6
 
 - 修复模板shader的语法错误

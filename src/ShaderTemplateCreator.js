@@ -54,7 +54,7 @@ class ShaderTemplateCreator {
     }
 
     createJson() {
-        var data = { "namespace": "StarLight", "outputFormat": "lua" };
+        var data = { "namespace": "StarLight", "outputFormat": "ts" };
         let className = this.toBigCamelIfNeeded(this.shaderName);
         let vshFilename = this.shaderName + this.spvVertSuffix;
         let fshFilename = this.shaderName + this.spvFragSuffix;
