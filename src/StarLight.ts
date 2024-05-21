@@ -16,6 +16,8 @@ const TIMEOUT = 10000;
 
 const globPattern = "**/*.+(sl.json|vert|frag|glsl)";
 
+const l10n = vscode.l10n;
+
 export class StarLight extends events.EventEmitter {
     inputShaderFile?: string; ///< Single file mode enabled if not undefined.
     refShaderFile?: string; ///< referenced shader file by inputShaderFile.
@@ -47,7 +49,7 @@ export class StarLight extends events.EventEmitter {
 
             this.inputDir = path.dirname(inputDir);
         } else if (!inputDirStat.isDirectory()) {
-            throw Error(`StarLight-Generator: Invalid file/directory: ${inputDir}`);
+            throw Error(l10n.t("StarLight-Generator: Invalid file/directory: {0}", inputDir));
         }
 
         this.tmpDir = fs.mkdtempSync(os.tmpdir());
@@ -68,7 +70,7 @@ export class StarLight extends events.EventEmitter {
         let t = await Promise.race([this.cancelEvent, p]);
         if (this.isCanceled) {
             onCancel?.();
-            throw Error("Early canceled");
+            throw Error(l10n.t("Early canceled"));
         }
         return <T>t;
     }
@@ -146,7 +148,7 @@ export class StarLight extends events.EventEmitter {
         const hasShader = filesToArchive.some(fileName => (fileName.endsWith(".glsl") || fileName.endsWith(".vert") || fileName.endsWith(".frag")));
 
         if (!(hasJson && hasShader)) {
-            throw Error("Invalid input folder/file!");
+            throw Error(l10n.t("Invalid input folder/file!"));
         }
     }
 
@@ -199,13 +201,13 @@ export class StarLight extends events.EventEmitter {
         const { data: configs } = jsonConfig;
 
         if (!(configs instanceof Array))
-            throw Error("Invalid json config file!");
+            throw Error(l10n.t("Invalid json config file!"));
 
         let hasParentPath = false;
         for (const config of configs) {
             const { vsh, fsh } = config;
             if (!(typeof vsh === 'string' && typeof fsh === 'string'))
-                throw Error("Invalid json config file!");
+                throw Error(l10n.t("Invalid json config file!"));
             if (path.normalize(vsh).startsWith("..")) {
                 hasParentPath = true;
                 const vshContent = await fs.promises.readFile(path.resolve(this.inputDir, vsh));
@@ -237,13 +239,13 @@ export class StarLight extends events.EventEmitter {
     async createZipFile() {
         const zipfile = path.join(this.tmpDir, "starlight_input.zip");
         console.info(`Starlight collected zipfile : ${zipfile}`);
-        this.updateProgress(0, "creating zip archive...");
+        this.updateProgress(0, l10n.t("creating zip archive..."));
 
         const output = fs.createWriteStream(zipfile);
         const archiveFile = archiver('zip');
 
         archiveFile.on('progress', (progress) => {
-            this.updateProgress(0, `creating zip archive... ${progress.fs.processedBytes}B/${progress.fs.totalBytes}B`)
+            this.updateProgress(0, l10n.t("creating zip archive...") + "  " + `${progress.fs.processedBytes}B/${progress.fs.totalBytes}B`)
         });
 
         const closeEvent = events.once(output, 'close');
@@ -283,7 +285,7 @@ export class StarLight extends events.EventEmitter {
     async submitAndDownload(updateZipFile: string) {
         const outputZipFile = path.join(this.tmpDir, "slOutput.zip");
 
-        this.updateProgress(0, 'sending request to server...');
+        this.updateProgress(0, l10n.t('sending request to server...'));
 
         const output = fs.createWriteStream(outputZipFile);
         const form = new FormData();
@@ -293,15 +295,15 @@ export class StarLight extends events.EventEmitter {
             const options: vscode.QuickPickItem[] = [
                 {
                     label: 'ts',
-                    description: '按 typescript 模式生成'
+                    description: l10n.t('generate Typescript files')
                 },
                 {
                     label: 'lua',
-                    description: '按 lua 模式生成'
+                    description: l10n.t('generate Lua files')
                 },
                 {
                     label: 'cpp',
-                    description: '按 cpp 模式生成'
+                    description: l10n.t('generate C++ files')
                 }
             ];
 
@@ -309,7 +311,7 @@ export class StarLight extends events.EventEmitter {
             if (selected && selected.label.length !== 0) {
                 form.append('type', selected.label);
             } else {
-                throw Error("StarLight generate cancled");
+                throw Error(l10n.t("StarLight generate cancled"));
             }
         }
         form.append('zipfile', fs.createReadStream(updateZipFile));
@@ -325,7 +327,7 @@ export class StarLight extends events.EventEmitter {
         console.log(resHttps.headers);
 
         resHttps.once('data', () => {
-            this.updateProgress(20, 'receiving result from server...');
+            this.updateProgress(20, l10n.t('receiving result from server...'));
         })
 
         resHttps.on('data', (data) => {
@@ -343,7 +345,7 @@ export class StarLight extends events.EventEmitter {
     }
 
     async extractResult(zipFile: string) {
-        this.updateProgress(0, "extracting received zip archive...");
+        this.updateProgress(0, l10n.t("extracting received zip archive..."));
 
         await this.awaitOrCancel(extractZip(zipFile, { dir: this.inputDir }));
 
@@ -354,11 +356,11 @@ export class StarLight extends events.EventEmitter {
             this.parseRemoteDiagnosticMessages(logContent);
             await this.awaitOrCancel(fs.rm(logFile));
             if (logContent.search(/\[ERROR\]/i) != -1) {
-                throw Error(`Error occured during generation`);
+                throw Error(l10n.t("Error occured during generation"));
             }
         }
 
-        this.updateProgress(25, "starligt generate done");
+        this.updateProgress(25, l10n.t("generation done"));
     }
 
     parseRemoteDiagnosticMessages(logContent: string) {

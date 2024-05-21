@@ -1,0 +1,8 @@
+{
+    "starlight-generator.generate.title": "在此文件/目录上执行 StarLight 生成",
+    "starlight-generator.createShaderTemplate.title": "在此目录中新建 StarLight 着色器模板",
+    "starlight-generator.binary_path.description": "本地 StarLight 二进制可执行文件的路径, 为空时使用线上服务",
+    "starlight-generator.api_url.description": "StarLight 线上服务的 URL (默认为 https://starlight.yyyyy.tech)",
+    "starlight-generator.showEditorContextMenu.description": "在编辑器右键菜单中显示 StarLight 生成指令",
+    "starlight-generator.explorerContextMenu.description": "在资源管理器右键菜单中显示 StarLight 生成指令"
+}

@@ -1,0 +1,8 @@
+{
+    "starlight-generator.generate.title": "StarLight: Run StarLight-Generator with current file/directory",
+    "starlight-generator.createShaderTemplate.title": "StarLight: Create StarLight shader template in current directory",
+    "starlight-generator.binary_path.description": "A path to starlight binrary. (Optional, use online service when empty)",
+    "starlight-generator.api_url.description": "An url to starlight service (default: https://starlight.yyyyy.tech)",
+    "starlight-generator.showEditorContextMenu.description": "Show 'StarLight-Generator' in editor context menu",
+    "starlight-generator.explorerContextMenu.description": "Show 'StarLight-Generator' in explorer context menu"
+}

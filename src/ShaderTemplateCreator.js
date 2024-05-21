@@ -5,6 +5,7 @@ const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
 var extPath = vscode.extensions.getExtension("wysaid.starlight-generator")?.extensionPath;
+const l10n = vscode.l10n;
 
 class ShaderTemplateCreator {
     inputDir = "";
@@ -21,19 +22,19 @@ class ShaderTemplateCreator {
         if (inputDirStat.isFile()) {
             this.inputDir = path.dirname(this.inputDir);
         } else if (!inputDirStat.isDirectory()) {
-            vscode.window.showErrorMessage("StarLight-Generator: Invalid file/directory: " + this.inputDir);
+            vscode.window.showErrorMessage(l10n.t("StarLight-Generator: Invalid file/directory: {0}", this.inputDir));
         }
     }
 
     async create() {
         const shaderName = await vscode.window.showInputBox({
-            placeHolder: "Shader Name",
-            prompt: "输入 shader 名字"
+            placeHolder: "ShaderName",
+            prompt: l10n.t("Please input the shader name")
         });
 
         if (shaderName === undefined || shaderName === '') {
             console.log(shaderName);
-            vscode.window.showErrorMessage('请输入 shader 名字');
+            vscode.window.showErrorMessage(l10n.t("Please input the shader name"));
             return
         }
 

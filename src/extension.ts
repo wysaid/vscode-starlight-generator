@@ -6,6 +6,7 @@ import { StarLight } from './StarLight';
 import { ShaderTemplateCreator } from './ShaderTemplateCreator';
 
 let diagnosticCollection: vscode.DiagnosticCollection
+const l10n = vscode.l10n;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('starlight-generator is now active');
@@ -21,7 +22,7 @@ type SlCommandType = "generate" | "createShaderTemplate";
 function routeCall(type: SlCommandType, runPath = vscode.window.activeTextEditor?.document?.uri) {
     console.log(`run routeCall("${type}", "${runPath}")`);
     if (!runPath) {
-        vscode.window.showErrorMessage("StarLight-Generator: No file/directory specified!");
+        vscode.window.showErrorMessage(l10n.t("StarLight-Generator: No file/directory specified!"));
         return;
     }
 
@@ -42,7 +43,7 @@ function performStarLight(runPath: vscode.Uri) {
 
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: "StarLight-Generator is running",
+        title: "StarLight",
         cancellable: true,
     }, async (progress, token) => {
         const sl = new StarLight({
@@ -53,6 +54,8 @@ function performStarLight(runPath: vscode.Uri) {
         token.onCancellationRequested(() => sl.cancel());
         try {
             await sl.performStarLight();
+            // 等待一小会显示窗口信息
+            await new Promise(resolve => setTimeout(resolve, 3000));
         }
         catch (err: any) {
             let errmsg: string;
