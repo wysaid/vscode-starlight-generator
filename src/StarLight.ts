@@ -274,10 +274,22 @@ export class StarLight extends events.EventEmitter {
         return zipfile;
     }
 
-    hasOutputFormat(): boolean {
+    async hasOutputFormat(): Promise<boolean> {
         if (this.inputJsonFile) {
-            const config = JSON.parse((fs.readFileSync(this.inputJsonFile)).toLocaleString());
-            return !!config.outputFormat;
+            const config = JSON.parse((await fs.promises.readFile(this.inputJsonFile)).toLocaleString());
+            return config.outputFormat;
+        } else if (this.inputDir) {
+            // 目录下的 '.sl.json' 若有不包含 'outputFormat' 字段时
+            const files = await glob("**/*.sl.json", { cwd: this.inputDir, absolute: true });
+            for (const fileName of files) {
+                if (fileName.endsWith('.sl.json')) {
+                    const config = JSON.parse((await fs.promises.readFile(fileName)).toLocaleString());
+                    if (config.outputFormat === undefined) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
         return false;
     }
@@ -291,7 +303,7 @@ export class StarLight extends events.EventEmitter {
         const form = new FormData();
 
         // 没找到适合的字段, 让用户自己选择一下.
-        if (!this.hasOutputFormat()) {
+        if (!await this.hasOutputFormat()) {
             const options: vscode.QuickPickItem[] = [
                 {
                     label: 'ts',
