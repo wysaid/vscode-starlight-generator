@@ -1,6 +1,4 @@
-'use strict';
-
-import vscode = require('vscode');
+import * as vscode from 'vscode';
 
 import { StarLight } from './StarLight';
 import { ShaderTemplateCreator } from './ShaderTemplateCreator';

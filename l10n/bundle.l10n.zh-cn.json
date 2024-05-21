@@ -1,7 +1,7 @@
 {
   "StarLight-Generator: Invalid file/directory: {0}": "StarLight-Generator: 无效的文件/目录: {0}",
   "StarLight-Generator: No file/directory specified!": "StarLight-Generator: 未指定文件/目录！",
-  "Please input the shader name": "请输入要生成的 shader 文件名",
+  "Early canceled": "提前取消",
   "Invalid input folder/file!": "无效的文件/目录！",
   "Invalid json config file!": "无效的 JSON 配置文件！",
   "creating zip archive...": "正在创建 ZIP 压缩文档……",
@@ -14,5 +14,5 @@
   "extracting received zip archive...": "正在解压 ZIP 压缩文档……",
   "Error occured during generation": "生成过程出现错误",
   "generation done": "生成完毕",
-  "Early canceled": "提前取消"
+  "Please input the shader name": "请输入要生成的 shader 文件名"
 }
