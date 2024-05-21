@@ -4,6 +4,12 @@ All notable changes to the "starlight-generator" extension will be documented in
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.6.9
+
+- 增加了本地化中文翻译, VSCode 版本要求升高到 1.75.0.
+- 修改默认模板, 增加 `cgeLastFragColor` 使用示例.
+- 在文件夹上生成时非必要不会弹窗选择输出格式.
+
 ## 0.6.8
 
 - shader 生成指令默认生成 `ts` 版本, 而不是 `lua` 版本
